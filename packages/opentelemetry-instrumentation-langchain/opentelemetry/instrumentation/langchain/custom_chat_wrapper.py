@@ -1,14 +1,13 @@
 import json
+
 from opentelemetry import context as context_api
-from opentelemetry.instrumentation.utils import _SUPPRESS_INSTRUMENTATION_KEY
-
-from opentelemetry.semconv.ai import SpanAttributes, LLMRequestTypeValues
-
 from opentelemetry.instrumentation.langchain.utils import (
     _with_tracer_wrapper,
     dont_throw,
+    should_send_prompts,
 )
-from opentelemetry.instrumentation.langchain.utils import should_send_prompts
+from opentelemetry.instrumentation.utils import _SUPPRESS_INSTRUMENTATION_KEY
+from opentelemetry.semconv.ai import LLMRequestTypeValues, SpanAttributes
 
 
 @_with_tracer_wrapper
@@ -68,9 +67,7 @@ def _handle_request(span, args, kwargs, instance):
                     json.dumps(prompt.content),
                 )
             else:
-                span.set_attribute(
-                    f"{SpanAttributes.LLM_PROMPTS}.{idx}.content", prompt.content
-                )
+                span.set_attribute(f"{SpanAttributes.LLM_PROMPTS}.{idx}.content", prompt.content)
 
 
 @dont_throw

@@ -1,6 +1,6 @@
 import pytest
+from langchain.chains import LLMChain, SequentialChain
 from langchain.prompts import PromptTemplate
-from langchain.chains import SequentialChain, LLMChain
 from langchain_openai import OpenAI
 
 
@@ -12,12 +12,8 @@ def test_sequential_chain(exporter):
     Title: {title}
     Era: {era}
     Playwright: This is a synopsis for the above play:"""  # noqa: E501
-    synopsis_prompt_template = PromptTemplate(
-        input_variables=["title", "era"], template=synopsis_template
-    )
-    synopsis_chain = LLMChain(
-        llm=llm, prompt=synopsis_prompt_template, output_key="synopsis"
-    )
+    synopsis_prompt_template = PromptTemplate(input_variables=["title", "era"], template=synopsis_template)
+    synopsis_chain = LLMChain(llm=llm, prompt=synopsis_prompt_template, output_key="synopsis")
 
     template = """You are a play critic from the New York Times. Given the synopsis of play, it is your job to write a review for that play.
 
@@ -34,9 +30,7 @@ def test_sequential_chain(exporter):
         output_variables=["synopsis", "review"],
         verbose=True,
     )
-    overall_chain(
-        {"title": "Tragedy at sunset on the beach", "era": "Victorian England"}
-    )
+    overall_chain({"title": "Tragedy at sunset on the beach", "era": "Victorian England"})
 
     spans = exporter.get_finished_spans()
 

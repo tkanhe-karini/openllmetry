@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import traceback
+
 from opentelemetry import context as context_api
 from opentelemetry.instrumentation.langchain.config import Config
 from opentelemetry.semconv.ai import SpanAttributes
@@ -36,9 +37,7 @@ def _with_tracer_wrapper(func):
 
 
 def should_send_prompts():
-    return (
-        os.getenv("TRACELOOP_TRACE_CONTENT") or "true"
-    ).lower() == "true" or context_api.get_value("override_enable_content_tracing")
+    return (os.getenv("TRACELOOP_TRACE_CONTENT") or "true").lower() == "true" or context_api.get_value("override_enable_content_tracing")
 
 
 def dont_throw(func):

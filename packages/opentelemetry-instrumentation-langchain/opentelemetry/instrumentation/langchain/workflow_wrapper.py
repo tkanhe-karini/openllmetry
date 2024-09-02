@@ -1,17 +1,14 @@
 from opentelemetry import context as context_api
 from opentelemetry.context import attach, set_value
-
-from opentelemetry.instrumentation.utils import (
-    _SUPPRESS_INSTRUMENTATION_KEY,
-)
-
-from opentelemetry.semconv.ai import SpanAttributes, TraceloopSpanKindValues
-
 from opentelemetry.instrumentation.langchain.utils import (
     _with_tracer_wrapper,
     process_request,
     process_response,
 )
+from opentelemetry.instrumentation.utils import (
+    _SUPPRESS_INSTRUMENTATION_KEY,
+)
+from opentelemetry.semconv.ai import SpanAttributes, TraceloopSpanKindValues
 
 
 @_with_tracer_wrapper
