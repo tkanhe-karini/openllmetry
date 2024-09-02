@@ -3,22 +3,20 @@
 import logging
 import os
 from typing import Collection
-from opentelemetry.instrumentation.alephalpha.config import Config
-from opentelemetry.instrumentation.alephalpha.utils import dont_throw
-from wrapt import wrap_function_wrapper
 
 from opentelemetry import context as context_api
-from opentelemetry.trace import get_tracer, SpanKind
-from opentelemetry.trace.status import Status, StatusCode
-
+from opentelemetry.instrumentation.alephalpha.config import Config
+from opentelemetry.instrumentation.alephalpha.utils import dont_throw
+from opentelemetry.instrumentation.alephalpha.version import __version__
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import (
     _SUPPRESS_INSTRUMENTATION_KEY,
     unwrap,
 )
-
-from opentelemetry.semconv.ai import SpanAttributes, LLMRequestTypeValues
-from opentelemetry.instrumentation.alephalpha.version import __version__
+from opentelemetry.semconv.ai import LLMRequestTypeValues, SpanAttributes
+from opentelemetry.trace import SpanKind, get_tracer
+from opentelemetry.trace.status import Status, StatusCode
+from wrapt import wrap_function_wrapper
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +31,7 @@ WRAPPED_METHODS = [
 
 
 def should_send_prompts():
-    return (
-        os.getenv("TRACELOOP_TRACE_CONTENT") or "true"
-    ).lower() == "true" or context_api.get_value("override_enable_content_tracing")
+    return (os.getenv("TRACELOOP_TRACE_CONTENT") or "true").lower() == "true" or context_api.get_value("override_enable_content_tracing")
 
 
 def _set_span_attribute(span, name, value):
@@ -52,11 +48,7 @@ def _set_input_attributes(span, llm_request_type, args, kwargs):
     if should_send_prompts():
         if llm_request_type == LLMRequestTypeValues.COMPLETION:
             _set_span_attribute(span, f"{SpanAttributes.LLM_PROMPTS}.0.role", "user")
-            _set_span_attribute(
-                span,
-                f"{SpanAttributes.LLM_PROMPTS}.0.content",
-                args[0].prompt.items[0].text
-            )
+            _set_span_attribute(span, f"{SpanAttributes.LLM_PROMPTS}.0.content", args[0].prompt.items[0].text)
 
 
 @dont_throw
@@ -68,9 +60,7 @@ def _set_response_attributes(span, llm_request_type, response):
                 f"{SpanAttributes.LLM_COMPLETIONS}.0.content",
                 response.completions[0].completion,
             )
-            _set_span_attribute(
-                span, f"{SpanAttributes.LLM_COMPLETIONS}.0.role", "assistant"
-            )
+            _set_span_attribute(span, f"{SpanAttributes.LLM_COMPLETIONS}.0.role", "assistant")
 
     input_tokens = getattr(response, "num_tokens_prompt_total", 0)
     output_tokens = getattr(response, "num_tokens_generated", 0)
@@ -134,7 +124,6 @@ def _wrap(tracer, to_wrap, wrapped, instance, args, kwargs):
 
     if response:
         if span.is_recording():
-
             _set_response_attributes(span, llm_request_type, response)
             span.set_status(Status(StatusCode.OK))
 
