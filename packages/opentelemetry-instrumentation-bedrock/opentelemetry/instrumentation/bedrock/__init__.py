@@ -261,7 +261,12 @@ def _set_anthropic_messages_span_attributes(span, request_body, response_body):
 
     prompt_tokens = 0
     completion_tokens = 0
-    if (
+
+    if response_body.get("invocation_metrics") is not None:
+        prompt_tokens = response_body.get("invocation_metrics").get("inputTokenCount")
+        completion_tokens = response_body.get("invocation_metrics").get("outputTokenCount")
+        _record_usage_to_span(span, prompt_tokens, completion_tokens)
+    elif (
         response_body.get("usage") is not None
         and response_body.get("usage").get("input_tokens") is not None
         and response_body.get("usage").get("output_tokens") is not None
