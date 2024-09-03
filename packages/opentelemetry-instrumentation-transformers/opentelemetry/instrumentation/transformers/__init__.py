@@ -2,18 +2,16 @@
 
 import logging
 from typing import Collection
-from opentelemetry.instrumentation.transformers.config import Config
-from wrapt import wrap_function_wrapper
-
-from opentelemetry.trace import get_tracer
 
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
-from opentelemetry.instrumentation.utils import unwrap
-
+from opentelemetry.instrumentation.transformers.config import Config
 from opentelemetry.instrumentation.transformers.text_generation_pipeline_wrapper import (
     text_generation_pipeline_wrapper,
 )
 from opentelemetry.instrumentation.transformers.version import __version__
+from opentelemetry.instrumentation.utils import unwrap
+from opentelemetry.trace import get_tracer
+from wrapt import wrap_function_wrapper
 
 logger = logging.getLogger(__name__)
 

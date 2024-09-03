@@ -31,16 +31,16 @@ opentelemetry-exporter-otlp-proto-http = "^1.25.0"
 opentelemetry-exporter-otlp-proto-grpc = "^1.25.0"
 opentelemetry-instrumentation-requests = "^0.46b0"
 opentelemetry-instrumentation-urllib3 = "^0.46b0"
-opentelemetry-semantic-conventions-ai = "0.3.1"
-opentelemetry-instrumentation-mistralai = {path="../opentelemetry-instrumentation-mistralai", develop=true}
-opentelemetry-instrumentation-openai = {path="../opentelemetry-instrumentation-openai", develop=true}
 opentelemetry-instrumentation-anthropic = {path="../opentelemetry-instrumentation-anthropic", develop=true}
+opentelemetry-instrumentation-bedrock = {path="../opentelemetry-instrumentation-bedrock", develop=true}
 opentelemetry-instrumentation-cohere = {path="../opentelemetry-instrumentation-cohere", develop=true}
 opentelemetry-instrumentation-google-generativeai = {path="../opentelemetry-instrumentation-google-generativeai", develop=true}
-opentelemetry-instrumentation-pinecone = {path="../opentelemetry-instrumentation-pinecone", develop=true}
 opentelemetry-instrumentation-langchain = {path="../opentelemetry-instrumentation-langchain", develop=true}
+opentelemetry-instrumentation-mistralai = {path="../opentelemetry-instrumentation-mistralai", develop=true}
+opentelemetry-instrumentation-openai = {path="../opentelemetry-instrumentation-openai", develop=true}
+opentelemetry-instrumentation-pinecone = {path="../opentelemetry-instrumentation-pinecone", develop=true}
 opentelemetry-instrumentation-transformers = {path="../opentelemetry-instrumentation-transformers", develop=true}
-opentelemetry-instrumentation-bedrock = {path="../opentelemetry-instrumentation-bedrock", develop=true}
+opentelemetry-semantic-conventions-ai = "0.3.1"
 colorama = "^0.4.6"
 tenacity = "^8.2.3"
 pydantic = ">=1"

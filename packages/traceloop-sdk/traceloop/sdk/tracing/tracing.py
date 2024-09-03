@@ -1,35 +1,33 @@
 import atexit
+import importlib.util
 import logging
 import os
-import importlib.util
-
+from typing import Dict, Optional, Set
 
 from colorama import Fore
 from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
-    OTLPSpanExporter as HTTPExporter,
-)
+from opentelemetry.context import attach, get_value, set_value
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
     OTLPSpanExporter as GRPCExporter,
 )
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider, SpanProcessor
-from opentelemetry.propagators.textmap import TextMapPropagator
-from opentelemetry.propagate import set_global_textmap
-from opentelemetry.sdk.trace.export import (
-    SpanExporter,
-    SimpleSpanProcessor,
-    BatchSpanProcessor,
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+    OTLPSpanExporter as HTTPExporter,
 )
-from opentelemetry.trace import get_tracer_provider, ProxyTracerProvider
-from opentelemetry.context import get_value, attach, set_value
-
+from opentelemetry.propagate import set_global_textmap
+from opentelemetry.propagators.textmap import TextMapPropagator
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import SpanProcessor, TracerProvider
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    SimpleSpanProcessor,
+    SpanExporter,
+)
 from opentelemetry.semconv.ai import SpanAttributes
+from opentelemetry.trace import ProxyTracerProvider, get_tracer_provider
 from traceloop.sdk import Telemetry
 from traceloop.sdk.instruments import Instruments
 from traceloop.sdk.tracing.content_allow_list import ContentAllowList
 from traceloop.sdk.utils import is_notebook
-from typing import Dict, Optional, Set
 
 TRACER_NAME = "traceloop.tracer"
 EXCLUDED_URLS = """
@@ -71,9 +69,7 @@ class TracerWrapper(object):
                 return obj
 
             obj.__resource = Resource(attributes=TracerWrapper.resource_attributes)
-            obj.__tracer_provider: TracerProvider = init_tracer_provider(
-                resource=obj.__resource
-            )
+            obj.__tracer_provider: TracerProvider = init_tracer_provider(resource=obj.__resource)
             if processor:
                 Telemetry().capture("tracer:init", {"processor": "custom"})
                 obj.__spans_processor: SpanProcessor = processor
@@ -96,21 +92,11 @@ class TracerWrapper(object):
                         },
                     )
 
-                obj.__spans_exporter: SpanExporter = (
-                    exporter
-                    if exporter
-                    else init_spans_exporter(
-                        TracerWrapper.endpoint, TracerWrapper.headers
-                    )
-                )
+                obj.__spans_exporter: SpanExporter = exporter if exporter else init_spans_exporter(TracerWrapper.endpoint, TracerWrapper.headers)
                 if disable_batch or is_notebook():
-                    obj.__spans_processor: SpanProcessor = SimpleSpanProcessor(
-                        obj.__spans_exporter
-                    )
+                    obj.__spans_processor: SpanProcessor = SimpleSpanProcessor(obj.__spans_exporter)
                 else:
-                    obj.__spans_processor: SpanProcessor = BatchSpanProcessor(
-                        obj.__spans_exporter
-                    )
+                    obj.__spans_processor: SpanProcessor = BatchSpanProcessor(obj.__spans_exporter)
                 obj.__spans_processor_original_on_start = None
 
             obj.__spans_processor.on_start = obj._span_processor_on_start
@@ -133,9 +119,7 @@ class TracerWrapper(object):
                             instrument_set = True
                     elif instrument == Instruments.ANTHROPIC:
                         if not init_anthropic_instrumentor(should_enrich_metrics):
-                            print(
-                                Fore.RED + "Warning: Anthropic library does not exist."
-                            )
+                            print(Fore.RED + "Warning: Anthropic library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
@@ -147,9 +131,7 @@ class TracerWrapper(object):
                             instrument_set = True
                     elif instrument == Instruments.PINECONE:
                         if not init_pinecone_instrumentor():
-                            print(
-                                Fore.RED + "Warning: Pinecone library does not exist."
-                            )
+                            print(Fore.RED + "Warning: Pinecone library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
@@ -161,26 +143,19 @@ class TracerWrapper(object):
                             instrument_set = True
                     elif instrument == Instruments.GOOGLE_GENERATIVEAI:
                         if not init_google_generativeai_instrumentor():
-                            print(
-                                Fore.RED
-                                + "Warning: Google Generative AI library does not exist."
-                            )
+                            print(Fore.RED + "Warning: Google Generative AI library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
                     elif instrument == Instruments.LANGCHAIN:
                         if not init_langchain_instrumentor():
-                            print(
-                                Fore.RED + "Warning: LangChain library does not exist."
-                            )
+                            print(Fore.RED + "Warning: LangChain library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
                     elif instrument == Instruments.MISTRAL:
                         if not init_mistralai_instrumentor():
-                            print(
-                                Fore.RED + "Warning: MistralAI library does not exist."
-                            )
+                            print(Fore.RED + "Warning: MistralAI library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
@@ -192,9 +167,7 @@ class TracerWrapper(object):
                             instrument_set = True
                     elif instrument == Instruments.LLAMA_INDEX:
                         if not init_llama_index_instrumentor():
-                            print(
-                                Fore.RED + "Warning: LlamaIndex library does not exist."
-                            )
+                            print(Fore.RED + "Warning: LlamaIndex library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
@@ -206,26 +179,19 @@ class TracerWrapper(object):
                             instrument_set = True
                     elif instrument == Instruments.TRANSFORMERS:
                         if not init_transformers_instrumentor():
-                            print(
-                                Fore.RED
-                                + "Warning: Transformers library does not exist."
-                            )
+                            print(Fore.RED + "Warning: Transformers library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
                     elif instrument == Instruments.TOGETHER:
                         if not init_together_instrumentor():
-                            print(
-                                Fore.RED + "Warning: TogetherAI library does not exist."
-                            )
+                            print(Fore.RED + "Warning: TogetherAI library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
                     elif instrument == Instruments.REQUESTS:
                         if not init_requests_instrumentor():
-                            print(
-                                Fore.RED + "Warning: Requests library does not exist."
-                            )
+                            print(Fore.RED + "Warning: Requests library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
@@ -249,17 +215,13 @@ class TracerWrapper(object):
                             instrument_set = True
                     elif instrument == Instruments.REPLICATE:
                         if not init_replicate_instrumentor():
-                            print(
-                                Fore.RED + "Warning: Replicate library does not exist."
-                            )
+                            print(Fore.RED + "Warning: Replicate library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
                     elif instrument == Instruments.VERTEXAI:
                         if not init_vertexai_instrumentor():
-                            print(
-                                Fore.RED + "Warning: Vertex AI library does not exist."
-                            )
+                            print(Fore.RED + "Warning: Vertex AI library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
@@ -271,29 +233,19 @@ class TracerWrapper(object):
                             instrument_set = True
                     elif instrument == Instruments.WEAVIATE:
                         if not init_weaviate_instrumentor():
-                            print(
-                                Fore.RED + "Warning: Weaviate library does not exist."
-                            )
+                            print(Fore.RED + "Warning: Weaviate library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
                     elif instrument == Instruments.ALEPHALPHA:
                         if not init_alephalpha_instrumentor():
-                            print(
-                                Fore.RED
-                                + "Warning: Aleph Alpha library does not exist."
-                            )
+                            print(Fore.RED + "Warning: Aleph Alpha library does not exist.")
                             print(Fore.RESET)
                         else:
                             instrument_set = True
 
                     else:
-                        print(
-                            Fore.RED
-                            + "Warning: "
-                            + instrument
-                            + " instrumentation does not exist."
-                        )
+                        print(Fore.RED + "Warning: " + instrument + " instrumentation does not exist.")
                         print(
                             "Usage:\n"
                             + "from traceloop.sdk.instruments import Instruments\n"
@@ -303,8 +255,7 @@ class TracerWrapper(object):
 
             if not instrument_set:
                 print(
-                    Fore.RED + "Warning: No valid instruments set. Remove 'instrument' "
-                    "argument to use all instruments, or set a valid instrument."
+                    Fore.RED + "Warning: No valid instruments set. Remove 'instrument' " "argument to use all instruments, or set a valid instrument."
                 )
                 print(Fore.RESET)
 
@@ -357,9 +308,7 @@ class TracerWrapper(object):
             prompt_template_variables = get_value("prompt_template_variables")
             if prompt_version_hash is not None:
                 for key, value in prompt_template_variables.items():
-                    span.set_attribute(
-                        f"traceloop.prompt.template_variables.{key}", value
-                    )
+                    span.set_attribute(f"traceloop.prompt.template_variables.{key}", value)
 
         # Call original on_start method if it exists in custom processor
         if self.__spans_processor_original_on_start:
@@ -385,10 +334,7 @@ class TracerWrapper(object):
         if (os.getenv("TRACELOOP_SUPPRESS_WARNINGS") or "false").lower() == "true":
             return False
 
-        print(
-            Fore.RED
-            + "Warning: Traceloop not initialized, make sure you call Traceloop.init()"
-        )
+        print(Fore.RED + "Warning: Traceloop not initialized, make sure you call Traceloop.init()")
         print(Fore.RESET)
         return False
 
@@ -410,9 +356,7 @@ def set_association_properties(properties: dict) -> None:
 
 def _set_association_properties_attributes(span, properties: dict) -> None:
     for key, value in properties.items():
-        span.set_attribute(
-            f"{SpanAttributes.TRACELOOP_ASSOCIATION_PROPERTIES}.{key}", value
-        )
+        span.set_attribute(f"{SpanAttributes.TRACELOOP_ASSOCIATION_PROPERTIES}.{key}", value)
 
 
 def set_workflow_name(workflow_name: str) -> None:
@@ -464,9 +408,7 @@ def init_tracer_provider(resource: Resource) -> TracerProvider:
         provider = TracerProvider(resource=resource)
         trace.set_tracer_provider(provider)
     elif not hasattr(default_provider, "add_span_processor"):
-        logging.error(
-            "Cannot add span processor to the default provider since it doesn't support it"
-        )
+        logging.error("Cannot add span processor to the default provider since it doesn't support it")
         return
     else:
         provider = default_provider
