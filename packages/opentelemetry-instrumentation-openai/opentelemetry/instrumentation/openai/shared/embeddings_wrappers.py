@@ -2,30 +2,27 @@ import logging
 import time
 
 from opentelemetry import context as context_api
-from opentelemetry.metrics import Counter, Histogram
-from opentelemetry.semconv.ai import SpanAttributes, LLMRequestTypeValues
-
-from opentelemetry.instrumentation.utils import _SUPPRESS_INSTRUMENTATION_KEY
-from opentelemetry.instrumentation.openai.utils import (
-    dont_throw,
-    start_as_current_span_async,
-    _with_embeddings_telemetry_wrapper,
-)
 from opentelemetry.instrumentation.openai.shared import (
+    OPENAI_LLM_USAGE_TOKEN_TYPES,
+    _get_openai_base_url,
     _metric_shared_attributes,
     _set_client_attributes,
     _set_request_attributes,
-    _set_span_attribute,
     _set_response_attributes,
+    _set_span_attribute,
     _token_type,
-    should_send_prompts,
     model_as_dict,
-    _get_openai_base_url,
-    OPENAI_LLM_USAGE_TOKEN_TYPES,
+    should_send_prompts,
 )
-
-from opentelemetry.instrumentation.openai.utils import is_openai_v1
-
+from opentelemetry.instrumentation.openai.utils import (
+    _with_embeddings_telemetry_wrapper,
+    dont_throw,
+    is_openai_v1,
+    start_as_current_span_async,
+)
+from opentelemetry.instrumentation.utils import _SUPPRESS_INSTRUMENTATION_KEY
+from opentelemetry.metrics import Counter, Histogram
+from opentelemetry.semconv.ai import LLMRequestTypeValues, SpanAttributes
 from opentelemetry.trace import SpanKind
 
 SPAN_NAME = "openai.embeddings"
