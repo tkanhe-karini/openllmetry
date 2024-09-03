@@ -377,6 +377,13 @@ def _set_streaming_token_metrics(request_kwargs, complete_response, span, token_
     prompt_usage = -1
     completion_usage = -1
 
+    logger.warning("--- using _set_streaming_token_metrics")
+    logger.warning(f"{request_kwargs=}")
+    logger.warning(f"{complete_response=}")
+    logger.warning(f"{span=}")
+    logger.warning(f"{token_counter=}")
+    logger.warning(f"{shared_attributes=}")
+
     # prompt_usage
     if request_kwargs and request_kwargs.get("messages"):
         prompt_content = ""
