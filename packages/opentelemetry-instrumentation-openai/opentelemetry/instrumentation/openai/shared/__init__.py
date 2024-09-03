@@ -196,7 +196,7 @@ def get_token_count_from_string(string: str, model_name: str):
         except KeyError as ex:
             # no such model_name in tiktoken
             logger.warning(f"Failed to get tiktoken encoding for model_name: {model_name}, using cl100k_base. Error: {str(ex)}")
-            encoding = "cl100k_base"
+            encoding = tiktoken.get_encoding("cl100k_base")
 
         tiktoken_encodings[model_name] = encoding
     else:
