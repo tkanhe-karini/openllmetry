@@ -163,7 +163,12 @@ async def _abuild_from_streaming_response(span, request_kwargs, response):
 @dont_throw
 def _set_token_usage(span, request_kwargs, complete_response):
     # use tiktoken calculate token usage
+    logger.warning("--- using _set_token_usage")
+    logger.warning(f"--- span: {span}")
+    logger.warning(f"--- request_kwargs: {request_kwargs}")
+    logger.warning(f"--- complete_response: {complete_response}")
     if should_record_stream_token_usage():
+        logger.warning("--- using should_record_stream_token_usage")
         prompt_usage = -1
         completion_usage = -1
 

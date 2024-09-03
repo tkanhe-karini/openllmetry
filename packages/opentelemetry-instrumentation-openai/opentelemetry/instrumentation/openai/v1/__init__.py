@@ -1,39 +1,34 @@
 from typing import Collection
 
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
-from opentelemetry.trace import get_tracer
-
-from opentelemetry.metrics import get_meter
-
-from wrapt import wrap_function_wrapper
-
 from opentelemetry.instrumentation.openai.shared.chat_wrappers import (
-    chat_wrapper,
     achat_wrapper,
+    chat_wrapper,
 )
 from opentelemetry.instrumentation.openai.shared.completion_wrappers import (
-    completion_wrapper,
     acompletion_wrapper,
+    completion_wrapper,
 )
 from opentelemetry.instrumentation.openai.shared.embeddings_wrappers import (
-    embeddings_wrapper,
     aembeddings_wrapper,
+    embeddings_wrapper,
 )
 from opentelemetry.instrumentation.openai.shared.image_gen_wrappers import (
     image_gen_metrics_wrapper,
 )
+from opentelemetry.instrumentation.openai.utils import is_metrics_enabled
 from opentelemetry.instrumentation.openai.v1.assistant_wrappers import (
     assistants_create_wrapper,
+    messages_list_wrapper,
+    runs_create_and_stream_wrapper,
     runs_create_wrapper,
     runs_retrieve_wrapper,
-    runs_create_and_stream_wrapper,
-    messages_list_wrapper,
 )
-
-from opentelemetry.instrumentation.openai.utils import is_metrics_enabled
 from opentelemetry.instrumentation.openai.version import __version__
-
+from opentelemetry.metrics import get_meter
 from opentelemetry.semconv.ai import Meters
+from opentelemetry.trace import get_tracer
+from wrapt import wrap_function_wrapper
 
 _instruments = ("openai >= 1.0.0",)
 
