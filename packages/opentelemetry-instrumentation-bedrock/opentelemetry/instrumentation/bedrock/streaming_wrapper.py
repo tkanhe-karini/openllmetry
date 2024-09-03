@@ -1,4 +1,5 @@
 import json
+
 from opentelemetry.instrumentation.bedrock.utils import dont_throw
 from wrapt import ObjectProxy
 
@@ -31,13 +32,9 @@ class StreamingWrapper(ObjectProxy):
         if type == "message_start":
             self._accumulating_body = decoded_chunk.get("message")
         elif type == "content_block_start":
-            self._accumulating_body["content"].append(
-                decoded_chunk.get("content_block")
-            )
+            self._accumulating_body["content"].append(decoded_chunk.get("content_block"))
         elif type == "content_block_delta":
-            self._accumulating_body["content"][-1]["text"] += decoded_chunk.get(
-                "delta"
-            ).get("text")
+            self._accumulating_body["content"][-1]["text"] += decoded_chunk.get("delta").get("text")
         elif type == "message_stop" and self._stream_done_callback:
             self._accumulating_body["invocation_metrics"] = decoded_chunk.get("amazon-bedrock-invocationMetrics")
             self._stream_done_callback(self._accumulating_body)
