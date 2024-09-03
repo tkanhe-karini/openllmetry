@@ -202,10 +202,6 @@ def get_token_count_from_string(string: str, model_name: str):
     else:
         encoding = tiktoken_encodings.get(model_name)
 
-    logger.warning(f"{encoding=}")
-    tokens = len(encoding.encode(string))
-    logger.warning(f"{tokens=}")
-
     return len(encoding.encode(string))
 
 

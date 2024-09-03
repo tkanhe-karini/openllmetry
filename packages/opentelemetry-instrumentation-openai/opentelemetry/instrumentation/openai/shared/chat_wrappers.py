@@ -89,7 +89,6 @@ def chat_wrapper(
         # span will be closed after the generator is done
 
         if is_openai_v1():
-            logger.warning("--- using is_openai_v1")
             return ChatStream(
                 span,
                 response,
@@ -103,7 +102,6 @@ def chat_wrapper(
                 kwargs,
             )
         else:
-            logger.warning("--- using openai_v2")
             return _build_from_streaming_response(
                 span,
                 response,
@@ -377,13 +375,6 @@ def _set_streaming_token_metrics(request_kwargs, complete_response, span, token_
     prompt_usage = -1
     completion_usage = -1
 
-    logger.warning("--- using _set_streaming_token_metrics")
-    logger.warning(f"{request_kwargs=}")
-    logger.warning(f"{complete_response=}")
-    logger.warning(f"{span=}")
-    logger.warning(f"{token_counter=}")
-    logger.warning(f"{shared_attributes=}")
-
     # prompt_usage
     if request_kwargs and request_kwargs.get("messages"):
         prompt_content = ""
@@ -411,13 +402,10 @@ def _set_streaming_token_metrics(request_kwargs, complete_response, span, token_
             completion_usage = get_token_count_from_string(completion_content, model_name)
 
     # span record
-    logger.warning(f"{prompt_usage=}")
-    logger.warning(f"{completion_usage=}")
     _set_span_stream_usage(span, prompt_usage, completion_usage)
 
     # metrics record
     if token_counter:
-        logger.warning("--- using token_counter")
         if type(prompt_usage) is int and prompt_usage >= 0:
             attributes_with_token_type = {
                 **shared_attributes,
