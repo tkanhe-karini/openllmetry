@@ -71,7 +71,7 @@ pip install traceloop-sdk
 
 Install directly from github
 ```bash
-pip install git+https://github.com/tkanhe-karini/openllmetry.git@new-tk#egg=traceloop-sdk\&subdirectory=packages/traceloop-sdk
+pip install git+https://github.com/tkanhe-karini/openllmetry.git@new-tk#egg=traceloop-sdk&subdirectory=packages/traceloop-sdk
 ```
 
 Then, to start instrumenting your code, just add this line to your code:
