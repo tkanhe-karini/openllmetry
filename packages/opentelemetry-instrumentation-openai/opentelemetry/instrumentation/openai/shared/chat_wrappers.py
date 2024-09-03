@@ -411,10 +411,13 @@ def _set_streaming_token_metrics(request_kwargs, complete_response, span, token_
             completion_usage = get_token_count_from_string(completion_content, model_name)
 
     # span record
+    logger.warning(f"{prompt_usage=}")
+    logger.warning(f"{completion_usage=}")
     _set_span_stream_usage(span, prompt_usage, completion_usage)
 
     # metrics record
     if token_counter:
+        logger.warning("--- using token_counter")
         if type(prompt_usage) is int and prompt_usage >= 0:
             attributes_with_token_type = {
                 **shared_attributes,
