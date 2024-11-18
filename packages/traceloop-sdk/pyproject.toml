@@ -37,12 +37,10 @@ opentelemetry-instrumentation-mistralai = { path = "../opentelemetry-instrumenta
 opentelemetry-instrumentation-openai = { path = "../opentelemetry-instrumentation-openai", develop = true }
 opentelemetry-instrumentation-anthropic = { path = "../opentelemetry-instrumentation-anthropic", develop = true }
 opentelemetry-instrumentation-cohere = { path = "../opentelemetry-instrumentation-cohere", develop = true }
-opentelemetry-instrumentation-google-generativeai = { path = "../opentelemetry-instrumentation-google-generativeai", develop = true }
 opentelemetry-instrumentation-langchain = { path = "../opentelemetry-instrumentation-langchain", develop = true }
 opentelemetry-instrumentation-transformers = { path = "../opentelemetry-instrumentation-transformers", develop = true }
 opentelemetry-instrumentation-bedrock = { path = "../opentelemetry-instrumentation-bedrock", develop = true }
 opentelemetry-instrumentation-sagemaker = { path = "../opentelemetry-instrumentation-sagemaker", develop = true }
-opentelemetry-instrumentation-vertexai = { path = "../opentelemetry-instrumentation-vertexai", develop = true }
 colorama = "^0.4.6"
 tenacity = "^8.2.3"
 pydantic = ">=1"
