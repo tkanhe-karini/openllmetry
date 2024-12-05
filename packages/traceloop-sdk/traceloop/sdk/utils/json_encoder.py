@@ -5,11 +5,10 @@ import json
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         try:
-            if isinstance(o, dict):
-                if "callbacks" in o:
-                    del o["callbacks"]
-                    return o
-                
+            if isinstance(o, dict) and "callbacks" in o:
+                del o["callbacks"]
+                return o
+
             if dataclasses.is_dataclass(o):
                 return dataclasses.asdict(o)
 
