@@ -17,4 +17,7 @@ class JSONEncoder(json.JSONEncoder):
         if hasattr(o, "json"):
             return o.json()
 
-        return super().default(o)
+        try:
+            return super().default(o)
+        except:
+            return str(o)
