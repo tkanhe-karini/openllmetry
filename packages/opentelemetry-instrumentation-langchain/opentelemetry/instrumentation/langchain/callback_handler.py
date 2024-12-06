@@ -151,6 +151,10 @@ def _set_chat_response(span: Span, response: LLMResult) -> None:
     for generations in response.generations:
         for generation in generations:
             print("generation", generation)
+            if hasattr(generation, "message"):
+                print("generation.message", generation.message)
+            if hasattr(generation, "message") and hasattr(generation.message, "usage_metadata"):
+                print("generation.message.usage_metadata", generation.message.usage_metadata)
             if hasattr(generation, "message") and hasattr(generation.message, "usage_metadata") and generation.message.usage_metadata is not None:
                 input_tokens += generation.message.usage_metadata.get("input_tokens") or generation.message.usage_metadata.get("prompt_tokens") or 0
                 output_tokens += (
