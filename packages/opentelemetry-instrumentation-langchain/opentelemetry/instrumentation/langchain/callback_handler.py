@@ -161,6 +161,9 @@ def _set_chat_response(span: Span, response: LLMResult) -> None:
                     generation.message.usage_metadata.get("output_tokens") or generation.message.usage_metadata.get("completion_tokens") or 0
                 )
                 total_tokens = input_tokens + output_tokens
+                print("input_tokens", input_tokens)
+                print("output_tokens", output_tokens)
+                print("total_tokens", total_tokens)
 
             prefix = f"{SpanAttributes.LLM_COMPLETIONS}.{i}"
             if hasattr(generation, "text") and generation.text != "":
