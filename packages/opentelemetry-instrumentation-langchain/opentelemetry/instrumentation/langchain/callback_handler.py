@@ -9,24 +9,23 @@ from langchain_core.callbacks import (
 )
 from langchain_core.messages import BaseMessage
 from langchain_core.outputs import LLMResult
+from opentelemetry import context as context_api
+from opentelemetry.context.context import Context
+from opentelemetry.instrumentation.langchain.utils import (
+    CallbackFilteredJSONEncoder,
+    dont_throw,
+    should_send_prompts,
+)
 from opentelemetry.instrumentation.utils import _SUPPRESS_INSTRUMENTATION_KEY
+from opentelemetry.metrics import Histogram
 from opentelemetry.semconv_ai import (
     SUPPRESS_LANGUAGE_MODEL_INSTRUMENTATION_KEY,
     LLMRequestTypeValues,
     SpanAttributes,
     TraceloopSpanKindValues,
 )
-from opentelemetry.context.context import Context
-from opentelemetry.trace import SpanKind, set_span_in_context, Tracer
+from opentelemetry.trace import SpanKind, Tracer, set_span_in_context
 from opentelemetry.trace.span import Span
-
-from opentelemetry import context as context_api
-from opentelemetry.instrumentation.langchain.utils import (
-    CallbackFilteredJSONEncoder,
-    dont_throw,
-    should_send_prompts,
-)
-from opentelemetry.metrics import Histogram
 
 
 @dataclass
@@ -61,9 +60,7 @@ def _set_request_params(span, kwargs):
     for model_tag in ("model", "model_id", "model_name"):
         if (model := kwargs.get(model_tag)) is not None:
             break
-        elif (
-            model := (kwargs.get("invocation_params") or {}).get(model_tag)
-        ) is not None:
+        elif (model := (kwargs.get("invocation_params") or {}).get(model_tag)) is not None:
             break
     else:
         model = "unknown"
@@ -72,9 +69,7 @@ def _set_request_params(span, kwargs):
     span.set_attribute(SpanAttributes.LLM_RESPONSE_MODEL, model)
 
     if "invocation_params" in kwargs:
-        params = (
-            kwargs["invocation_params"].get("params") or kwargs["invocation_params"]
-        )
+        params = kwargs["invocation_params"].get("params") or kwargs["invocation_params"]
     else:
         params = kwargs
 
@@ -83,9 +78,7 @@ def _set_request_params(span, kwargs):
         SpanAttributes.LLM_REQUEST_MAX_TOKENS,
         params.get("max_tokens") or params.get("max_new_tokens"),
     )
-    _set_span_attribute(
-        span, SpanAttributes.LLM_REQUEST_TEMPERATURE, params.get("temperature")
-    )
+    _set_span_attribute(span, SpanAttributes.LLM_REQUEST_TEMPERATURE, params.get("temperature"))
     _set_span_attribute(span, SpanAttributes.LLM_REQUEST_TOP_P, params.get("top_p"))
 
 
@@ -118,18 +111,12 @@ def _set_chat_request(
     _set_request_params(span, serialized.get("kwargs", {}))
 
     if should_send_prompts():
-        for i, function in enumerate(
-            kwargs.get("invocation_params", {}).get("functions", [])
-        ):
+        for i, function in enumerate(kwargs.get("invocation_params", {}).get("functions", [])):
             prefix = f"{SpanAttributes.LLM_REQUEST_FUNCTIONS}.{i}"
 
             _set_span_attribute(span, f"{prefix}.name", function.get("name"))
-            _set_span_attribute(
-                span, f"{prefix}.description", function.get("description")
-            )
-            _set_span_attribute(
-                span, f"{prefix}.parameters", json.dumps(function.get("parameters"))
-            )
+            _set_span_attribute(span, f"{prefix}.description", function.get("description"))
+            _set_span_attribute(span, f"{prefix}.parameters", json.dumps(function.get("parameters")))
 
         i = 0
         for message in messages:
@@ -163,20 +150,11 @@ def _set_chat_response(span: Span, response: LLMResult) -> None:
     i = 0
     for generations in response.generations:
         for generation in generations:
-            if (
-                hasattr(generation, "message")
-                and hasattr(generation.message, "usage_metadata")
-                and generation.message.usage_metadata is not None
-            ):
-                input_tokens += (
-                    generation.message.usage_metadata.get("input_tokens")
-                    or generation.message.usage_metadata.get("prompt_tokens")
-                    or 0
-                )
+            print("generation", generation)
+            if hasattr(generation, "message") and hasattr(generation.message, "usage_metadata") and generation.message.usage_metadata is not None:
+                input_tokens += generation.message.usage_metadata.get("input_tokens") or generation.message.usage_metadata.get("prompt_tokens") or 0
                 output_tokens += (
-                    generation.message.usage_metadata.get("output_tokens")
-                    or generation.message.usage_metadata.get("completion_tokens")
-                    or 0
+                    generation.message.usage_metadata.get("output_tokens") or generation.message.usage_metadata.get("completion_tokens") or 0
                 )
                 total_tokens = input_tokens + output_tokens
 
@@ -200,9 +178,7 @@ def _set_chat_response(span: Span, response: LLMResult) -> None:
                 else:
                     span.set_attribute(
                         f"{prefix}.content",
-                        json.dumps(
-                            generation.message.content, cls=CallbackFilteredJSONEncoder
-                        ),
+                        json.dumps(generation.message.content, cls=CallbackFilteredJSONEncoder),
                     )
                 if generation.generation_info.get("finish_reason"):
                     span.set_attribute(
@@ -213,15 +189,11 @@ def _set_chat_response(span: Span, response: LLMResult) -> None:
                 if generation.message.additional_kwargs.get("function_call"):
                     span.set_attribute(
                         f"{prefix}.tool_calls.0.name",
-                        generation.message.additional_kwargs.get("function_call").get(
-                            "name"
-                        ),
+                        generation.message.additional_kwargs.get("function_call").get("name"),
                     )
                     span.set_attribute(
                         f"{prefix}.tool_calls.0.arguments",
-                        generation.message.additional_kwargs.get("function_call").get(
-                            "arguments"
-                        ),
+                        generation.message.additional_kwargs.get("function_call").get("arguments"),
                     )
 
                 if generation.message.additional_kwargs.get("tool_calls"):
@@ -249,9 +221,7 @@ def _set_chat_response(span: Span, response: LLMResult) -> None:
 
 
 class TraceloopCallbackHandler(BaseCallbackHandler):
-    def __init__(
-        self, tracer: Tracer, duration_histogram: Histogram, token_histogram: Histogram
-    ) -> None:
+    def __init__(self, tracer: Tracer, duration_histogram: Histogram, token_histogram: Histogram) -> None:
         super().__init__()
         self.tracer = tracer
         self.duration_histogram = duration_histogram
@@ -300,9 +270,7 @@ class TraceloopCallbackHandler(BaseCallbackHandler):
         metadata: Optional[dict[str, Any]] = None,
     ) -> Span:
         if metadata is not None:
-            current_association_properties = (
-                context_api.get_value("association_properties") or {}
-            )
+            current_association_properties = context_api.get_value("association_properties") or {}
             context_api.attach(
                 context_api.set_value(
                     "association_properties",
@@ -322,13 +290,9 @@ class TraceloopCallbackHandler(BaseCallbackHandler):
         span.set_attribute(SpanAttributes.TRACELOOP_WORKFLOW_NAME, workflow_name)
         span.set_attribute(SpanAttributes.TRACELOOP_ENTITY_PATH, entity_path)
 
-        token = context_api.attach(
-            context_api.set_value(SUPPRESS_LANGUAGE_MODEL_INSTRUMENTATION_KEY, True)
-        )
+        token = context_api.attach(context_api.set_value(SUPPRESS_LANGUAGE_MODEL_INSTRUMENTATION_KEY, True))
 
-        self.spans[run_id] = SpanHolder(
-            span, token, None, [], workflow_name, entity_name, entity_path
-        )
+        self.spans[run_id] = SpanHolder(span, token, None, [], workflow_name, entity_name, entity_path)
 
         if parent_run_id is not None and parent_run_id in self.spans:
             self.spans[parent_run_id].children.append(run_id)
@@ -407,11 +371,7 @@ class TraceloopCallbackHandler(BaseCallbackHandler):
         entity_path = ""
 
         name = self._get_name_from_callback(serialized, **kwargs)
-        kind = (
-            TraceloopSpanKindValues.WORKFLOW
-            if parent_run_id is None or parent_run_id not in self.spans
-            else TraceloopSpanKindValues.TASK
-        )
+        kind = TraceloopSpanKindValues.WORKFLOW if parent_run_id is None or parent_run_id not in self.spans else TraceloopSpanKindValues.TASK
 
         if kind == TraceloopSpanKindValues.WORKFLOW:
             workflow_name = name
@@ -471,11 +431,7 @@ class TraceloopCallbackHandler(BaseCallbackHandler):
 
         self._end_span(span, run_id)
         if parent_run_id is None:
-            context_api.attach(
-                context_api.set_value(
-                    SUPPRESS_LANGUAGE_MODEL_INSTRUMENTATION_KEY, False
-                )
-            )
+            context_api.attach(context_api.set_value(SUPPRESS_LANGUAGE_MODEL_INSTRUMENTATION_KEY, False))
 
     @dont_throw
     def on_chat_model_start(
@@ -494,9 +450,7 @@ class TraceloopCallbackHandler(BaseCallbackHandler):
             return
 
         name = self._get_name_from_callback(serialized, kwargs=kwargs)
-        span = self._create_llm_span(
-            run_id, parent_run_id, name, LLMRequestTypeValues.CHAT, metadata=metadata
-        )
+        span = self._create_llm_span(run_id, parent_run_id, name, LLMRequestTypeValues.CHAT, metadata=metadata)
         _set_chat_request(span, serialized, messages, kwargs)
 
     @dont_throw
@@ -516,9 +470,7 @@ class TraceloopCallbackHandler(BaseCallbackHandler):
             return
 
         name = self._get_name_from_callback(serialized, kwargs=kwargs)
-        span = self._create_llm_span(
-            run_id, parent_run_id, name, LLMRequestTypeValues.COMPLETION
-        )
+        span = self._create_llm_span(run_id, parent_run_id, name, LLMRequestTypeValues.COMPLETION)
         _set_llm_request(span, serialized, prompts, kwargs)
 
     @dont_throw
@@ -537,39 +489,19 @@ class TraceloopCallbackHandler(BaseCallbackHandler):
 
         model_name = None
         if response.llm_output is not None:
-            model_name = response.llm_output.get(
-                "model_name"
-            ) or response.llm_output.get("model_id")
+            model_name = response.llm_output.get("model_name") or response.llm_output.get("model_id")
             if model_name is not None:
                 span.set_attribute(SpanAttributes.LLM_RESPONSE_MODEL, model_name)
 
-        token_usage = (response.llm_output or {}).get("token_usage") or (
-            response.llm_output or {}
-        ).get("usage")
+        token_usage = (response.llm_output or {}).get("token_usage") or (response.llm_output or {}).get("usage")
         if token_usage is not None:
-            prompt_tokens = (
-                token_usage.get("prompt_tokens")
-                or token_usage.get("input_token_count")
-                or token_usage.get("input_tokens")
-            )
-            completion_tokens = (
-                token_usage.get("completion_tokens")
-                or token_usage.get("generated_token_count")
-                or token_usage.get("output_tokens")
-            )
-            total_tokens = token_usage.get("total_tokens") or (
-                prompt_tokens + completion_tokens
-            )
+            prompt_tokens = token_usage.get("prompt_tokens") or token_usage.get("input_token_count") or token_usage.get("input_tokens")
+            completion_tokens = token_usage.get("completion_tokens") or token_usage.get("generated_token_count") or token_usage.get("output_tokens")
+            total_tokens = token_usage.get("total_tokens") or (prompt_tokens + completion_tokens)
 
-            _set_span_attribute(
-                span, SpanAttributes.LLM_USAGE_PROMPT_TOKENS, prompt_tokens
-            )
-            _set_span_attribute(
-                span, SpanAttributes.LLM_USAGE_COMPLETION_TOKENS, completion_tokens
-            )
-            _set_span_attribute(
-                span, SpanAttributes.LLM_USAGE_TOTAL_TOKENS, total_tokens
-            )
+            _set_span_attribute(span, SpanAttributes.LLM_USAGE_PROMPT_TOKENS, prompt_tokens)
+            _set_span_attribute(span, SpanAttributes.LLM_USAGE_COMPLETION_TOKENS, completion_tokens)
+            _set_span_attribute(span, SpanAttributes.LLM_USAGE_TOTAL_TOKENS, total_tokens)
 
             # Record token usage metrics
             if prompt_tokens > 0:
@@ -692,10 +624,7 @@ class TraceloopCallbackHandler(BaseCallbackHandler):
 
         if parent_span is None:
             return ""
-        elif (
-            parent_span.entity_path == ""
-            and parent_span.entity_name == parent_span.workflow_name
-        ):
+        elif parent_span.entity_path == "" and parent_span.entity_name == parent_span.workflow_name:
             return ""
         elif parent_span.entity_path == "":
             return f"{parent_span.entity_name}"
