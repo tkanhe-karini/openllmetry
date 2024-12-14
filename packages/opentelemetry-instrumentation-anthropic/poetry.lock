@@ -682,7 +682,7 @@ files = [
 
 [package.dependencies]
 opentelemetry-api = ">=1.4,<2.0"
-opentelemetry-semantic-conventions = "0.50b0"
+opentelemetry-semantic-conventions = "0.48b0"
 packaging = ">=18.0"
 wrapt = ">=1.0.0,<2.0.0"
 
@@ -699,12 +699,12 @@ files = [
 
 [package.dependencies]
 opentelemetry-api = "1.27.0"
-opentelemetry-semantic-conventions = "0.50b0"
+opentelemetry-semantic-conventions = "0.48b0"
 typing-extensions = ">=3.7.4"
 
 [[package]]
 name = "opentelemetry-semantic-conventions"
-version = "0.50b0"
+version = "0.48b0"
 description = "OpenTelemetry Semantic Conventions"
 optional = false
 python-versions = ">=3.8"
