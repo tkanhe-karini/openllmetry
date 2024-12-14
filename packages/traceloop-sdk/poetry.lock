@@ -1492,7 +1492,7 @@ files = [
 
 [package.dependencies]
 opentelemetry-api = ">=1.4,<2.0"
-opentelemetry-semantic-conventions = "0.50b0"
+opentelemetry-semantic-conventions = "0.48b0"
 packaging = ">=18.0"
 wrapt = ">=1.0.0,<2.0.0"
 
@@ -1943,7 +1943,7 @@ files = [
 [package.dependencies]
 opentelemetry-api = ">=1.12,<2.0"
 opentelemetry-instrumentation = "0.50b0"
-opentelemetry-semantic-conventions = "0.50b0"
+opentelemetry-semantic-conventions = "0.48b0"
 opentelemetry-util-http = "0.50b0"
 
 [package.extras]
@@ -1982,7 +1982,7 @@ files = [
 [package.dependencies]
 opentelemetry-api = ">=1.12,<2.0"
 opentelemetry-instrumentation = "0.50b0"
-opentelemetry-semantic-conventions = "0.50b0"
+opentelemetry-semantic-conventions = "0.48b0"
 packaging = ">=21.0"
 wrapt = ">=1.11.2"
 
@@ -2060,7 +2060,7 @@ files = [
 [package.dependencies]
 opentelemetry-api = ">=1.12,<2.0"
 opentelemetry-instrumentation = "0.50b0"
-opentelemetry-semantic-conventions = "0.50b0"
+opentelemetry-semantic-conventions = "0.48b0"
 opentelemetry-util-http = "0.50b0"
 wrapt = ">=1.0.0,<2.0.0"
 
@@ -2160,7 +2160,7 @@ files = [
 
 [package.dependencies]
 opentelemetry-api = "1.27.0"
-opentelemetry-semantic-conventions = "0.50b0"
+opentelemetry-semantic-conventions = "0.48b0"
 typing-extensions = ">=3.7.4"
 
 [[package]]
