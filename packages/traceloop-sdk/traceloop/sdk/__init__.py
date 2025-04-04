@@ -1,38 +1,42 @@
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Optional, Set
 
+from typing import Optional, Set
 from colorama import Fore
-from opentelemetry.propagators.textmap import TextMapPropagator
-from opentelemetry.sdk._logs.export import LogExporter
-from opentelemetry.sdk.metrics.export import MetricExporter
-from opentelemetry.sdk.resources import SERVICE_NAME
 from opentelemetry.sdk.trace import SpanProcessor
 from opentelemetry.sdk.trace.export import SpanExporter
+from opentelemetry.sdk.metrics.export import MetricExporter
+from opentelemetry.sdk._logs.export import LogExporter
+from opentelemetry.sdk.resources import SERVICE_NAME
+from opentelemetry.propagators.textmap import TextMapPropagator
 from opentelemetry.util.re import parse_env_headers
-from traceloop.sdk.client.client import Client
+
+from traceloop.sdk.images.image_uploader import ImageUploader
+from traceloop.sdk.metrics.metrics import MetricsWrapper
+from traceloop.sdk.logging.logging import LoggerWrapper
+from traceloop.sdk.telemetry import Telemetry
+from traceloop.sdk.instruments import Instruments
 from traceloop.sdk.config import (
     is_content_tracing_enabled,
-    is_logging_enabled,
-    is_metrics_enabled,
     is_tracing_enabled,
+    is_metrics_enabled,
+    is_logging_enabled,
 )
 from traceloop.sdk.fetcher import Fetcher
-from traceloop.sdk.images.image_uploader import ImageUploader
-from traceloop.sdk.instruments import Instruments
-from traceloop.sdk.logging.logging import LoggerWrapper
-from traceloop.sdk.metrics.metrics import MetricsWrapper
-from traceloop.sdk.telemetry import Telemetry
 from traceloop.sdk.tracing.tracing import (
     TracerWrapper,
     set_association_properties,
     set_external_prompt_tracing_context,
 )
+from typing import Dict
+from traceloop.sdk.client.client import Client
 
 
 class Traceloop:
-    AUTO_CREATED_KEY_PATH = str(Path.home() / ".cache" / "traceloop" / "auto_created_key")
+    AUTO_CREATED_KEY_PATH = str(
+        Path.home() / ".cache" / "traceloop" / "auto_created_key"
+    )
     AUTO_CREATED_URL = str(Path.home() / ".cache" / "traceloop" / "auto_created_url")
 
     __tracer_wrapper: TracerWrapper
@@ -65,10 +69,17 @@ class Traceloop:
     ) -> Optional[Client]:
         if not enabled:
             TracerWrapper.set_disabled(True)
-            print(Fore.YELLOW + "Traceloop instrumentation is disabled via init flag" + Fore.RESET)
+            print(
+                Fore.YELLOW
+                + "Traceloop instrumentation is disabled via init flag"
+                + Fore.RESET
+            )
             return
 
-        telemetry_enabled = telemetry_enabled and (os.getenv("TRACELOOP_TELEMETRY") or "true").lower() == "true"
+        telemetry_enabled = (
+            telemetry_enabled
+            and (os.getenv("TRACELOOP_TELEMETRY") or "true").lower() == "true"
+        )
         if telemetry_enabled:
             Telemetry()
 
@@ -90,17 +101,32 @@ class Traceloop:
         if isinstance(headers, str):
             headers = parse_env_headers(headers)
 
-        if not exporter and not processor and api_endpoint == "https://api.traceloop.com" and not api_key:
-            print(Fore.RED + "Error: Missing Traceloop API key," + " go to https://app.traceloop.com/settings/api-keys to create one")
+        if (
+            not exporter
+            and not processor
+            and api_endpoint == "https://api.traceloop.com"
+            and not api_key
+        ):
+            print(
+                Fore.RED
+                + "Error: Missing Traceloop API key,"
+                + " go to https://app.traceloop.com/settings/api-keys to create one"
+            )
             print("Set the TRACELOOP_API_KEY environment variable to the key")
             print(Fore.RESET)
             return
 
         if not exporter and not processor and headers:
-            print(Fore.GREEN + f"Traceloop exporting traces to {api_endpoint}, authenticating with custom headers")
+            print(
+                Fore.GREEN
+                + f"Traceloop exporting traces to {api_endpoint}, authenticating with custom headers"
+            )
 
         if api_key and not exporter and not processor and not headers:
-            print(Fore.GREEN + f"Traceloop exporting traces to {api_endpoint} authenticating with bearer token")
+            print(
+                Fore.GREEN
+                + f"Traceloop exporting traces to {api_endpoint} authenticating with bearer token"
+            )
             headers = {
                 "Authorization": f"Bearer {api_key}",
             }
@@ -109,7 +135,9 @@ class Traceloop:
 
         # Tracer init
         resource_attributes.update({SERVICE_NAME: app_name})
-        TracerWrapper.set_static_params(resource_attributes, enable_content_tracing, api_endpoint, headers)
+        TracerWrapper.set_static_params(
+            resource_attributes, enable_content_tracing, api_endpoint, headers
+        )
         Traceloop.__tracer_wrapper = TracerWrapper(
             disable_batch=disable_batch,
             processor=processor,
@@ -125,28 +153,47 @@ class Traceloop:
             print(Fore.YELLOW + "Metrics are disabled" + Fore.RESET)
         else:
             metrics_endpoint = os.getenv("TRACELOOP_METRICS_ENDPOINT") or api_endpoint
-            metrics_headers = os.getenv("TRACELOOP_METRICS_HEADERS") or metrics_headers or headers
+            metrics_headers = (
+                os.getenv("TRACELOOP_METRICS_HEADERS") or metrics_headers or headers
+            )
             if metrics_exporter or processor:
                 print(Fore.GREEN + "Traceloop exporting metrics to a custom exporter")
 
-            MetricsWrapper.set_static_params(resource_attributes, metrics_endpoint, metrics_headers)
+            MetricsWrapper.set_static_params(
+                resource_attributes, metrics_endpoint, metrics_headers
+            )
             Traceloop.__metrics_wrapper = MetricsWrapper(exporter=metrics_exporter)
 
         if is_logging_enabled() and (logging_exporter or not exporter):
             logging_endpoint = os.getenv("TRACELOOP_LOGGING_ENDPOINT") or api_endpoint
-            logging_headers = os.getenv("TRACELOOP_LOGGING_HEADERS") or logging_headers or headers
+            logging_headers = (
+                os.getenv("TRACELOOP_LOGGING_HEADERS") or logging_headers or headers
+            )
             if logging_exporter or processor:
                 print(Fore.GREEN + "Traceloop exporting logs to a custom exporter")
 
-            LoggerWrapper.set_static_params(resource_attributes, logging_endpoint, logging_headers)
+            LoggerWrapper.set_static_params(
+                resource_attributes, logging_endpoint, logging_headers
+            )
             Traceloop.__logger_wrapper = LoggerWrapper(exporter=logging_exporter)
 
-        if api_endpoint.find("traceloop.com") != -1 and api_key and (exporter is None) and (processor is None):
+        if (
+            api_endpoint.find("traceloop.com") != -1
+            and api_key
+            and (exporter is None)
+            and (processor is None)
+        ):
             if traceloop_sync_enabled:
                 Traceloop.__fetcher = Fetcher(base_url=api_endpoint, api_key=api_key)
                 Traceloop.__fetcher.run()
-                print(Fore.GREEN + "Traceloop syncing configuration and prompts" + Fore.RESET)
-            Traceloop.__client = Client(api_key=api_key, app_name=app_name, api_endpoint=api_endpoint)
+                print(
+                    Fore.GREEN
+                    + "Traceloop syncing configuration and prompts"
+                    + Fore.RESET
+                )
+            Traceloop.__client = Client(
+                api_key=api_key, app_name=app_name, api_endpoint=api_endpoint
+            )
             return Traceloop.__client
 
     def set_association_properties(properties: dict) -> None:
@@ -169,6 +216,7 @@ class Traceloop:
         """
         if not Traceloop.__client:
             raise Exception(
-                "Client not initialized, you should call Traceloop.init() first. If you are still getting this error - you are missing the api key"
+                "Client not initialized, you should call Traceloop.init() first. "
+                "If you are still getting this error - you are missing the api key"
             )
         return Traceloop.__client
