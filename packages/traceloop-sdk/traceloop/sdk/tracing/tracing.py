@@ -1,38 +1,35 @@
 import atexit
 import logging
 import os
-
+from typing import Callable, Dict, Optional, Set
 
 from colorama import Fore
 from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
-    OTLPSpanExporter as HTTPExporter,
-)
+from opentelemetry.context import attach, get_value, set_value
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
     OTLPSpanExporter as GRPCExporter,
 )
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.sdk.trace import TracerProvider, SpanProcessor
-from opentelemetry.propagators.textmap import TextMapPropagator
-from opentelemetry.propagate import set_global_textmap
-from opentelemetry.sdk.trace.export import (
-    SpanExporter,
-    SimpleSpanProcessor,
-    BatchSpanProcessor,
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import (
+    OTLPSpanExporter as HTTPExporter,
 )
-from opentelemetry.trace import get_tracer_provider, ProxyTracerProvider
-from opentelemetry.context import get_value, attach, set_value
 from opentelemetry.instrumentation.threading import ThreadingInstrumentor
-
+from opentelemetry.propagate import set_global_textmap
+from opentelemetry.propagators.textmap import TextMapPropagator
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import SpanProcessor, TracerProvider
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+    SimpleSpanProcessor,
+    SpanExporter,
+)
 from opentelemetry.semconv_ai import SpanAttributes
+from opentelemetry.trace import ProxyTracerProvider, get_tracer_provider
 from traceloop.sdk import Telemetry
 from traceloop.sdk.images.image_uploader import ImageUploader
 from traceloop.sdk.instruments import Instruments
 from traceloop.sdk.tracing.content_allow_list import ContentAllowList
 from traceloop.sdk.utils import is_notebook
 from traceloop.sdk.utils.package_check import is_package_installed
-from typing import Callable, Dict, Optional, Set
-
 
 TRACER_NAME = "traceloop.tracer"
 EXCLUDED_URLS = """
@@ -104,21 +101,11 @@ class TracerWrapper(object):
                         },
                     )
 
-                obj.__spans_exporter: SpanExporter = (
-                    exporter
-                    if exporter
-                    else init_spans_exporter(
-                        TracerWrapper.endpoint, TracerWrapper.headers
-                    )
-                )
+                obj.__spans_exporter: SpanExporter = exporter if exporter else init_spans_exporter(TracerWrapper.endpoint, TracerWrapper.headers)
                 if disable_batch or is_notebook():
-                    obj.__spans_processor: SpanProcessor = SimpleSpanProcessor(
-                        obj.__spans_exporter
-                    )
+                    obj.__spans_processor: SpanProcessor = SimpleSpanProcessor(obj.__spans_exporter)
                 else:
-                    obj.__spans_processor: SpanProcessor = BatchSpanProcessor(
-                        obj.__spans_exporter
-                    )
+                    obj.__spans_processor: SpanProcessor = BatchSpanProcessor(obj.__spans_exporter)
                 obj.__spans_processor_original_on_start = None
 
             obj.__spans_processor.on_start = obj._span_processor_on_start
@@ -138,10 +125,7 @@ class TracerWrapper(object):
             )
 
             if not instrument_set:
-                print(
-                    Fore.RED + "Warning: No valid instruments set. Remove 'instrument' "
-                    "argument to use all instruments, or set a valid instrument."
-                )
+                print(Fore.RED + "Warning: No valid instruments set. Remove 'instrument' argument to use all instruments, or set a valid instrument.")
                 print(Fore.RESET)
 
             obj.__content_allow_list = ContentAllowList()
@@ -176,9 +160,7 @@ class TracerWrapper(object):
         if is_llm_span(span):
             managed_prompt = get_value("managed_prompt")
             if managed_prompt is not None:
-                span.set_attribute(
-                    SpanAttributes.TRACELOOP_PROMPT_MANAGED, managed_prompt
-                )
+                span.set_attribute(SpanAttributes.TRACELOOP_PROMPT_MANAGED, managed_prompt)
 
             prompt_key = get_value("prompt_key")
             if prompt_key is not None:
@@ -186,27 +168,19 @@ class TracerWrapper(object):
 
             prompt_version = get_value("prompt_version")
             if prompt_version is not None:
-                span.set_attribute(
-                    SpanAttributes.TRACELOOP_PROMPT_VERSION, prompt_version
-                )
+                span.set_attribute(SpanAttributes.TRACELOOP_PROMPT_VERSION, prompt_version)
 
             prompt_version_name = get_value("prompt_version_name")
             if prompt_version_name is not None:
-                span.set_attribute(
-                    SpanAttributes.TRACELOOP_PROMPT_VERSION_NAME, prompt_version_name
-                )
+                span.set_attribute(SpanAttributes.TRACELOOP_PROMPT_VERSION_NAME, prompt_version_name)
 
             prompt_version_hash = get_value("prompt_version_hash")
             if prompt_version_hash is not None:
-                span.set_attribute(
-                    SpanAttributes.TRACELOOP_PROMPT_VERSION_HASH, prompt_version_hash
-                )
+                span.set_attribute(SpanAttributes.TRACELOOP_PROMPT_VERSION_HASH, prompt_version_hash)
 
             prompt_template = get_value("prompt_template")
             if prompt_template is not None:
-                span.set_attribute(
-                    SpanAttributes.TRACELOOP_PROMPT_TEMPLATE, prompt_template
-                )
+                span.set_attribute(SpanAttributes.TRACELOOP_PROMPT_TEMPLATE, prompt_template)
 
             prompt_template_variables = get_value("prompt_template_variables")
             if prompt_template_variables is not None:
@@ -243,10 +217,7 @@ class TracerWrapper(object):
         if (os.getenv("TRACELOOP_SUPPRESS_WARNINGS") or "false").lower() == "true":
             return False
 
-        print(
-            Fore.RED
-            + "Warning: Traceloop not initialized, make sure you call Traceloop.init()"
-        )
+        print(Fore.RED + "Warning: Traceloop not initialized, make sure you call Traceloop.init()")
         print(Fore.RESET)
         return False
 
@@ -272,9 +243,7 @@ def set_association_properties(properties: dict) -> None:
 
 def _set_association_properties_attributes(span, properties: dict) -> None:
     for key, value in properties.items():
-        span.set_attribute(
-            f"{SpanAttributes.TRACELOOP_ASSOCIATION_PROPERTIES}.{key}", value
-        )
+        span.set_attribute(f"{SpanAttributes.TRACELOOP_ASSOCIATION_PROPERTIES}.{key}", value)
 
 
 def set_workflow_name(workflow_name: str) -> None:
@@ -308,9 +277,7 @@ def set_managed_prompt_tracing_context(
     attach(set_value("prompt_template_variables", template_variables))
 
 
-def set_external_prompt_tracing_context(
-    template: str, variables: dict, version: int
-) -> None:
+def set_external_prompt_tracing_context(template: str, variables: dict, version: int) -> None:
     attach(set_value("managed_prompt", False))
     attach(set_value("prompt_version", version))
     attach(set_value("prompt_template", template))
@@ -336,9 +303,7 @@ def init_tracer_provider(resource: Resource) -> TracerProvider:
         provider = TracerProvider(resource=resource)
         trace.set_tracer_provider(provider)
     elif not hasattr(default_provider, "add_span_processor"):
-        logging.error(
-            "Cannot add span processor to the default provider since it doesn't support it"
-        )
+        logging.error("Cannot add span processor to the default provider since it doesn't support it")
         return
     else:
         provider = default_provider
@@ -353,130 +318,63 @@ def init_instrumentations(
     block_instruments: Optional[Set[Instruments]] = None,
 ):
     block_instruments = block_instruments or set()
-    instruments = instruments or set(
-        Instruments
-    )  # Use all instruments if none specified
+    instruments = instruments or set(Instruments)  # Use all instruments if none specified
 
     # Remove any instruments that were explicitly blocked
     instruments = instruments - block_instruments
 
     instrument_set = False
     for instrument in instruments:
-        if instrument == Instruments.ALEPHALPHA:
-            if init_alephalpha_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.ANTHROPIC:
-            if init_anthropic_instrumentor(
-                should_enrich_metrics, base64_image_uploader
-            ):
+        if instrument == Instruments.ANTHROPIC:
+            if init_anthropic_instrumentor(should_enrich_metrics, base64_image_uploader):
                 instrument_set = True
         elif instrument == Instruments.BEDROCK:
             if init_bedrock_instrumentor(should_enrich_metrics):
                 instrument_set = True
-        elif instrument == Instruments.CHROMA:
-            if init_chroma_instrumentor():
-                instrument_set = True
+
         elif instrument == Instruments.COHERE:
             if init_cohere_instrumentor():
                 instrument_set = True
-        elif instrument == Instruments.CREW:
-            if init_crewai_instrumentor():
-                instrument_set = True
+
         elif instrument == Instruments.GOOGLE_GENERATIVEAI:
             if init_google_generativeai_instrumentor():
                 instrument_set = True
-        elif instrument == Instruments.GROQ:
-            if init_groq_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.HAYSTACK:
-            if init_haystack_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.LANCEDB:
-            if init_lancedb_instrumentor():
-                instrument_set = True
+
         elif instrument == Instruments.LANGCHAIN:
             if init_langchain_instrumentor():
                 instrument_set = True
-        elif instrument == Instruments.LLAMA_INDEX:
-            if init_llama_index_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.MARQO:
-            if init_marqo_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.MILVUS:
-            if init_milvus_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.MISTRAL:
-            if init_mistralai_instrumentor():
-                instrument_set = True
+
         elif instrument == Instruments.OLLAMA:
             if init_ollama_instrumentor():
                 instrument_set = True
         elif instrument == Instruments.OPENAI:
             if init_openai_instrumentor(should_enrich_metrics, base64_image_uploader):
                 instrument_set = True
-        elif instrument == Instruments.PINECONE:
-            if init_pinecone_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.PYMYSQL:
-            if init_pymysql_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.QDRANT:
-            if init_qdrant_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.REDIS:
-            if init_redis_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.REPLICATE:
-            if init_replicate_instrumentor():
-                instrument_set = True
+
         elif instrument == Instruments.REQUESTS:
             if init_requests_instrumentor():
                 instrument_set = True
-        elif instrument == Instruments.SAGEMAKER:
-            if init_sagemaker_instrumentor(should_enrich_metrics):
-                instrument_set = True
-        elif instrument == Instruments.TOGETHER:
-            if init_together_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.TRANSFORMERS:
-            if init_transformers_instrumentor():
-                instrument_set = True
+
         elif instrument == Instruments.URLLIB3:
             if init_urllib3_instrumentor():
                 instrument_set = True
         elif instrument == Instruments.VERTEXAI:
             if init_vertexai_instrumentor():
                 instrument_set = True
-        elif instrument == Instruments.WATSONX:
-            if init_watsonx_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.WEAVIATE:
-            if init_weaviate_instrumentor():
-                instrument_set = True
+
         else:
             print(Fore.RED + f"Warning: {instrument} instrumentation does not exist.")
-            print(
-                "Usage:\n"
-                "from traceloop.sdk.instruments import Instruments\n"
-                "Traceloop.init(app_name='...', instruments=set([Instruments.OPENAI]))"
-            )
+            print("Usage:\nfrom traceloop.sdk.instruments import Instruments\nTraceloop.init(app_name='...', instruments=set([Instruments.OPENAI]))")
             print(Fore.RESET)
 
     if not instrument_set:
-        print(
-            Fore.RED
-            + "Warning: No valid instruments set. "
-            + "Specify instruments or remove 'instruments' argument to use all instruments."
-        )
+        print(Fore.RED + "Warning: No valid instruments set. " + "Specify instruments or remove 'instruments' argument to use all instruments.")
         print(Fore.RESET)
 
     return instrument_set
 
 
-def init_openai_instrumentor(
-    should_enrich_metrics: bool, base64_image_uploader: Callable[[str, str, str], str]
-):
+def init_openai_instrumentor(should_enrich_metrics: bool, base64_image_uploader: Callable[[str, str, str], str]):
     try:
         if is_package_installed("openai"):
             Telemetry().capture("instrumentation:openai:init")
@@ -499,9 +397,7 @@ def init_openai_instrumentor(
         return False
 
 
-def init_anthropic_instrumentor(
-    should_enrich_metrics: bool, base64_image_uploader: Callable[[str, str, str], str]
-):
+def init_anthropic_instrumentor(should_enrich_metrics: bool, base64_image_uploader: Callable[[str, str, str], str]):
     try:
         if is_package_installed("anthropic"):
             Telemetry().capture("instrumentation:anthropic:init")
@@ -878,9 +774,7 @@ def init_vertexai_instrumentor():
 
 def init_watsonx_instrumentor():
     try:
-        if is_package_installed("ibm-watsonx-ai") or is_package_installed(
-            "ibm_watson_machine_learning"
-        ):
+        if is_package_installed("ibm-watsonx-ai") or is_package_installed("ibm_watson_machine_learning"):
             Telemetry().capture("instrumentation:watsonx:init")
             from opentelemetry.instrumentation.watsonx import WatsonxInstrumentor
 
@@ -1030,8 +924,6 @@ def metrics_common_attributes():
     association_properties = get_value("association_properties")
     if association_properties is not None:
         for key, value in association_properties.items():
-            common_attributes[
-                f"{SpanAttributes.TRACELOOP_ASSOCIATION_PROPERTIES}.{key}"
-            ] = value
+            common_attributes[f"{SpanAttributes.TRACELOOP_ASSOCIATION_PROPERTIES}.{key}"] = value
 
     return common_attributes

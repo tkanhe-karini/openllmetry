@@ -3,20 +3,19 @@ import os
 import threading
 import time
 import typing
-import requests
-
-from threading import Thread, Event
+from threading import Event, Thread
 from typing import Dict
+
+import requests
 from tenacity import (
     RetryError,
     retry,
+    retry_if_exception,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception,
 )
-
-from traceloop.sdk.prompts.registry import PromptRegistry
 from traceloop.sdk.prompts.client import PromptRegistryClient
+from traceloop.sdk.prompts.registry import PromptRegistry
 from traceloop.sdk.tracing.content_allow_list import ContentAllowList
 from traceloop.sdk.version import __version__
 
@@ -36,9 +35,7 @@ class Fetcher:
         self._prompt_registry = PromptRegistryClient()._registry
         self._content_allow_list = ContentAllowList()
         self._stop_polling_event = Event()
-        self._exit_monitor = Thread(
-            target=monitor_exit, args=(self._stop_polling_event,), daemon=True
-        )
+        self._exit_monitor = Thread(target=monitor_exit, args=(self._stop_polling_event,), daemon=True)
         self._poller_thread = Thread(
             target=thread_func,
             args=(
@@ -84,9 +81,7 @@ class RetryIfServerError(retry_if_exception):
 
 
 def check_http_error(e):
-    return isinstance(e, requests.exceptions.HTTPError) and (
-        500 <= e.response.status_code < 600
-    )
+    return isinstance(e, requests.exceptions.HTTPError) and (500 <= e.response.status_code < 600)
 
 
 @retry(
