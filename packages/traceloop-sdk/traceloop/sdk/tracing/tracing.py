@@ -344,9 +344,6 @@ def init_instrumentations(
             if init_langchain_instrumentor():
                 instrument_set = True
 
-        elif instrument == Instruments.OLLAMA:
-            if init_ollama_instrumentor():
-                instrument_set = True
         elif instrument == Instruments.OPENAI:
             if init_openai_instrumentor(should_enrich_metrics, base64_image_uploader):
                 instrument_set = True
