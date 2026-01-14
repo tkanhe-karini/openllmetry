@@ -46,7 +46,6 @@ opentelemetry-instrumentation-transformers = { path = "../opentelemetry-instrume
 opentelemetry-instrumentation-bedrock = { path = "../opentelemetry-instrumentation-bedrock", develop = true }
 opentelemetry-instrumentation-sagemaker = { path = "../opentelemetry-instrumentation-sagemaker", develop = true }
 opentelemetry-instrumentation-vertexai = { path = "../opentelemetry-instrumentation-vertexai", develop = true }
-opentelemetry-instrumentation-weaviate = { path = "../opentelemetry-instrumentation-weaviate", develop = true }
 opentelemetry-instrumentation-mcp = { path = "../opentelemetry-instrumentation-mcp", develop = true }
 colorama = "^0.4.6"
 tenacity = ">=8.2.3, <10.0"
