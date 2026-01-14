@@ -470,13 +470,7 @@ def init_instrumentations(
 
     instrument_set = False
     for instrument in instruments:
-        if instrument == Instruments.AGNO:
-            if init_agno_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.ALEPHALPHA:
-            if init_alephalpha_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.ANTHROPIC:
+        if instrument == Instruments.ANTHROPIC:
             if init_anthropic_instrumentor(
                 should_enrich_metrics, base64_image_uploader
             ):
@@ -484,49 +478,19 @@ def init_instrumentations(
         elif instrument == Instruments.BEDROCK:
             if init_bedrock_instrumentor(should_enrich_metrics):
                 instrument_set = True
-        elif instrument == Instruments.CHROMA:
-            if init_chroma_instrumentor():
-                instrument_set = True
         elif instrument == Instruments.COHERE:
             if init_cohere_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.CREWAI:
-            if init_crewai_instrumentor():
                 instrument_set = True
         elif instrument == Instruments.GOOGLE_GENERATIVEAI:
             if init_google_generativeai_instrumentor(
                 should_enrich_metrics, base64_image_uploader
             ):
                 instrument_set = True
-        elif instrument == Instruments.GROQ:
-            if init_groq_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.HAYSTACK:
-            if init_haystack_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.LANCEDB:
-            if init_lancedb_instrumentor():
-                instrument_set = True
         elif instrument == Instruments.LANGCHAIN:
             if init_langchain_instrumentor():
                 instrument_set = True
-        elif instrument == Instruments.LLAMA_INDEX:
-            if init_llama_index_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.MARQO:
-            if init_marqo_instrumentor():
-                instrument_set = True
         elif instrument == Instruments.MCP:
             if init_mcp_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.MILVUS:
-            if init_milvus_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.MISTRAL:
-            if init_mistralai_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.OLLAMA:
-            if init_ollama_instrumentor():
                 instrument_set = True
         elif instrument == Instruments.OPENAI:
             if init_openai_instrumentor(should_enrich_metrics, base64_image_uploader):
@@ -534,29 +498,11 @@ def init_instrumentations(
         elif instrument == Instruments.OPENAI_AGENTS:
             if init_openai_agents_instrumentor():
                 instrument_set = True
-        elif instrument == Instruments.PINECONE:
-            if init_pinecone_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.PYMYSQL:
-            if init_pymysql_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.QDRANT:
-            if init_qdrant_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.REDIS:
-            if init_redis_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.REPLICATE:
-            if init_replicate_instrumentor():
-                instrument_set = True
         elif instrument == Instruments.REQUESTS:
             if init_requests_instrumentor():
                 instrument_set = True
         elif instrument == Instruments.SAGEMAKER:
             if init_sagemaker_instrumentor(should_enrich_metrics):
-                instrument_set = True
-        elif instrument == Instruments.TOGETHER:
-            if init_together_instrumentor():
                 instrument_set = True
         elif instrument == Instruments.TRANSFORMERS:
             if init_transformers_instrumentor():
@@ -566,15 +512,6 @@ def init_instrumentations(
                 instrument_set = True
         elif instrument == Instruments.VERTEXAI:
             if init_vertexai_instrumentor(should_enrich_metrics, base64_image_uploader):
-                instrument_set = True
-        elif instrument == Instruments.WATSONX:
-            if init_watsonx_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.WEAVIATE:
-            if init_weaviate_instrumentor():
-                instrument_set = True
-        elif instrument == Instruments.WRITER:
-            if init_writer_instrumentor():
                 instrument_set = True
         else:
             print(Fore.RED + f"Warning: {instrument} instrumentation does not exist.")
