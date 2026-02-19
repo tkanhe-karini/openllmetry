@@ -65,7 +65,7 @@ class Telemetry:
             "$process_person_profile": False,
         }
 
-    def capture(self, event: str, event_properties: dict = {}) -> None
+    def capture(self, event: str, event_properties: dict = {}) -> None:
         pass
         # try:  # don't fail if telemetry fails
         #     if self._telemetry_enabled:
