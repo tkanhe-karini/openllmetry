@@ -25,9 +25,9 @@ from opentelemetry.sdk.trace.export import (
 from opentelemetry.sdk.trace.sampling import Sampler
 from opentelemetry.semconv_ai import SpanAttributes
 from opentelemetry.trace import ProxyTracerProvider, Span, get_tracer_provider
-from traceloop.sdk.telemetry import Telemetry
 from traceloop.sdk.images.image_uploader import ImageUploader
 from traceloop.sdk.instruments import Instruments
+from traceloop.sdk.telemetry import Telemetry
 from traceloop.sdk.tracing.content_allow_list import ContentAllowList
 from traceloop.sdk.utils import is_notebook
 from traceloop.sdk.utils.package_check import is_package_installed
@@ -406,14 +406,8 @@ def init_instrumentations(
 
     instrument_set = False
     for instrument in instruments:
-        if instrument == Instruments.ANTHROPIC:
-            if init_anthropic_instrumentor(should_enrich_metrics, base64_image_uploader):
-                instrument_set = True
-        elif instrument == Instruments.BEDROCK:
+        if instrument == Instruments.BEDROCK:
             if init_bedrock_instrumentor(should_enrich_metrics):
-                instrument_set = True
-        elif instrument == Instruments.COHERE:
-            if init_cohere_instrumentor():
                 instrument_set = True
         elif instrument == Instruments.GOOGLE_GENERATIVEAI:
             if init_google_generativeai_instrumentor():
