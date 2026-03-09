@@ -25,7 +25,7 @@ from opentelemetry.sdk.trace.export import (
 from opentelemetry.sdk.trace.sampling import Sampler
 from opentelemetry.semconv_ai import SpanAttributes
 from opentelemetry.trace import ProxyTracerProvider, Span, get_tracer_provider
-from traceloop.sdk import Telemetry
+from traceloop.sdk.telemetry import Telemetry
 from traceloop.sdk.images.image_uploader import ImageUploader
 from traceloop.sdk.instruments import Instruments
 from traceloop.sdk.tracing.content_allow_list import ContentAllowList
