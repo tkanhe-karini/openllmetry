@@ -14,6 +14,7 @@ class Telemetry:
     UNKNOWN_ANON_ID = "UNKNOWN"
 
     _posthog = None
+    _telemetry_enabled = False
 
     def __new__(cls) -> "Telemetry":
         if not hasattr(cls, "instance"):
@@ -65,13 +66,12 @@ class Telemetry:
             "$process_person_profile": False,
         }
 
-    def capture(self, event: str, event_properties: dict = {}) -> None
-        pass
-        # try:  # don't fail if telemetry fails
-        #     if self._telemetry_enabled:
-        #         self._posthog.capture(self._anon_id(), event, {**self._context(), **event_properties})
-        # except Exception:
-        #     pass
+    def capture(self, event: str, event_properties: dict = {}) -> None:
+        try:  # don't fail if telemetry fails
+            if self._telemetry_enabled:
+                self._posthog.capture(self._anon_id(), event, {**self._context(), **event_properties})
+        except Exception:
+            pass
 
     def log_exception(self, exception: Exception):
         pass
