@@ -1,4 +1,5 @@
 from typing import Optional
+
 from jinja2 import Environment, meta
 from traceloop.sdk import Telemetry
 from traceloop.sdk.prompts.model import Prompt, PromptVersion, TemplateEngine
@@ -71,22 +72,15 @@ class PromptRegistryClient:
             else:
                 prompt_version = get_effective_version(prompt)
         except StopIteration:
-            raise Exception(
-                f"Prompt {key} does not have an available version to render"
-            )
+            raise Exception(f"Prompt {key} does not have an available version to render")
 
         # By default, OpenAI will set tool_choice to "auto"
         # if tools not provided and there is tool_choice set it throws an error
-        if (
-            not prompt_version.llm_config.tools
-            or len(prompt_version.llm_config.tools) == 0
-        ) and prompt_version.llm_config.tool_choice is not None:
+        if (not prompt_version.llm_config.tools or len(prompt_version.llm_config.tools) == 0) and prompt_version.llm_config.tool_choice is not None:
             prompt_version.llm_config.tool_choice = None
 
         params_dict = {"messages": self.render_messages(prompt_version, **variables)}
-        params_dict.update(
-            (k, v) for k, v in iter(prompt_version.llm_config) if v not in [None, []]
-        )
+        params_dict.update((k, v) for k, v in iter(prompt_version.llm_config) if v not in [None, []])
         params_dict.pop("mode")
 
         set_managed_prompt_tracing_context(
@@ -105,16 +99,12 @@ class PromptRegistryClient:
             for msg in prompt_version.messages:
                 if isinstance(msg.template, str):
                     template = self._jinja_env.from_string(msg.template)
-                    template_variables = meta.find_undeclared_variables(
-                        self._jinja_env.parse(msg.template)
-                    )
+                    template_variables = meta.find_undeclared_variables(self._jinja_env.parse(msg.template))
                     missing_variables = template_variables.difference(set(args.keys()))
                     if missing_variables == set():
                         rendered_msg = template.render(args)
                     else:
-                        raise Exception(
-                            f"Input variables: {','.join(str(var) for var in missing_variables)} are missing"
-                        )
+                        raise Exception(f"Input variables: {','.join(str(var) for var in missing_variables)} are missing")
 
                 else:
                     rendered_msg = []
@@ -122,16 +112,10 @@ class PromptRegistryClient:
                     for content in msg.template:
                         if content.type == "text":
                             template = self._jinja_env.from_string(content.text)
-                            template_variables = meta.find_undeclared_variables(
-                                self._jinja_env.parse(msg.template)
-                            )
-                            missing_variables = template_variables.difference(
-                                set(args.keys())
-                            )
+                            template_variables = meta.find_undeclared_variables(self._jinja_env.parse(msg.template))
+                            missing_variables = template_variables.difference(set(args.keys()))
                             if missing_variables != set():
-                                raise Exception(
-                                    f"Input variables: {','.join(str(var) for var in missing_variables)} are missing"
-                                )
+                                raise Exception(f"Input variables: {','.join(str(var) for var in missing_variables)} are missing")
 
                             rendered_msg.append(
                                 {
@@ -146,6 +130,4 @@ class PromptRegistryClient:
 
             return rendered_messages
         else:
-            raise Exception(
-                f"Templating engine {prompt_version.templating_engine} is not supported"
-            )
+            raise Exception(f"Templating engine {prompt_version.templating_engine} is not supported")

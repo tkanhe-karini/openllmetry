@@ -71,7 +71,7 @@ class Traceloop:
             print(Fore.YELLOW + "Traceloop instrumentation is disabled via init flag" + Fore.RESET)
             return
 
-        telemetry_enabled = False
+        telemetry_enabled = True
         if telemetry_enabled:
             Telemetry()
 
