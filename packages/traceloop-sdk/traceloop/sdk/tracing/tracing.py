@@ -25,6 +25,7 @@ from opentelemetry.sdk.trace.export import (
 from opentelemetry.sdk.trace.sampling import Sampler
 from opentelemetry.semconv_ai import SpanAttributes
 from opentelemetry.trace import ProxyTracerProvider, Span, get_tracer_provider
+from traceloop.sdk import Telemetry
 from traceloop.sdk.images.image_uploader import ImageUploader
 from traceloop.sdk.instruments import Instruments
 from traceloop.sdk.tracing.content_allow_list import ContentAllowList
@@ -117,22 +118,22 @@ class TracerWrapper(object):
 
             # Handle default processor case
             else:
-                if exporter:
-                    # Telemetry().capture(
-                        "tracer:init",
-                        {
-                            "exporter": "custom",
-                            "processor": "simple" if disable_batch else "batch",
-                        },
-                    )
-                else:
-                    # Telemetry().capture(
-                        "tracer:init",
-                        {
-                            "exporter": TracerWrapper.endpoint,
-                            "processor": "simple" if disable_batch else "batch",
-                        },
-                    )
+                # if exporter:
+                #     Telemetry().capture(
+                #         "tracer:init",
+                #         {
+                #             "exporter": "custom",
+                #             "processor": "simple" if disable_batch else "batch",
+                #         },
+                #     )
+                # else:
+                #     Telemetry().capture(
+                #         "tracer:init",
+                #         {
+                #             "exporter": TracerWrapper.endpoint,
+                #             "processor": "simple" if disable_batch else "batch",
+                #         },
+                #     )
 
                 obj.__spans_processor = get_default_span_processor(disable_batch=disable_batch, exporter=exporter)
 
@@ -456,7 +457,7 @@ def init_openai_instrumentor(should_enrich_metrics: bool, base64_image_uploader:
             from opentelemetry.instrumentation.openai import OpenAIInstrumentor
 
             instrumentor = OpenAIInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
                 enrich_assistant=should_enrich_metrics,
                 get_common_metrics_attributes=metrics_common_attributes,
                 upload_base64_image=base64_image_uploader,
@@ -467,7 +468,7 @@ def init_openai_instrumentor(should_enrich_metrics: bool, base64_image_uploader:
 
     except Exception as e:
         logging.error(f"Error initializing OpenAI instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -478,7 +479,7 @@ def init_anthropic_instrumentor(should_enrich_metrics: bool, base64_image_upload
             from opentelemetry.instrumentation.anthropic import AnthropicInstrumentor
 
             instrumentor = AnthropicInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
                 enrich_token_usage=should_enrich_metrics,
                 get_common_metrics_attributes=metrics_common_attributes,
                 upload_base64_image=base64_image_uploader,
@@ -488,7 +489,7 @@ def init_anthropic_instrumentor(should_enrich_metrics: bool, base64_image_upload
             return True
     except Exception as e:
         logging.error(f"Error initializing Anthropic instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -499,14 +500,14 @@ def init_cohere_instrumentor():
             from opentelemetry.instrumentation.cohere import CohereInstrumentor
 
             instrumentor = CohereInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Cohere instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -517,14 +518,14 @@ def init_pinecone_instrumentor():
             from opentelemetry.instrumentation.pinecone import PineconeInstrumentor
 
             instrumentor = PineconeInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Pinecone instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -535,14 +536,14 @@ def init_qdrant_instrumentor():
             from opentelemetry.instrumentation.qdrant import QdrantInstrumentor
 
             instrumentor = QdrantInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Qdrant instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -553,14 +554,14 @@ def init_chroma_instrumentor():
             from opentelemetry.instrumentation.chromadb import ChromaInstrumentor
 
             instrumentor = ChromaInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Chroma instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -573,14 +574,14 @@ def init_google_generativeai_instrumentor():
             )
 
             instrumentor = GoogleGenerativeAiInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Gemini instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -591,14 +592,14 @@ def init_haystack_instrumentor():
             from opentelemetry.instrumentation.haystack import HaystackInstrumentor
 
             instrumentor = HaystackInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Haystack instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -609,14 +610,14 @@ def init_langchain_instrumentor():
             from opentelemetry.instrumentation.langchain import LangchainInstrumentor
 
             instrumentor = LangchainInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing LangChain instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -627,14 +628,14 @@ def init_mistralai_instrumentor():
             from opentelemetry.instrumentation.mistralai import MistralAiInstrumentor
 
             instrumentor = MistralAiInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing MistralAI instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -645,14 +646,14 @@ def init_ollama_instrumentor():
             from opentelemetry.instrumentation.ollama import OllamaInstrumentor
 
             instrumentor = OllamaInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Ollama instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -665,14 +666,14 @@ def init_transformers_instrumentor():
             )
 
             instrumentor = TransformersInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Transformers instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -683,14 +684,14 @@ def init_together_instrumentor():
             from opentelemetry.instrumentation.together import TogetherAiInstrumentor
 
             instrumentor = TogetherAiInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing TogetherAI instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -701,14 +702,14 @@ def init_llama_index_instrumentor():
             from opentelemetry.instrumentation.llamaindex import LlamaIndexInstrumentor
 
             instrumentor = LlamaIndexInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing LlamaIndex instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -719,14 +720,14 @@ def init_milvus_instrumentor():
             from opentelemetry.instrumentation.milvus import MilvusInstrumentor
 
             instrumentor = MilvusInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Milvus instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -741,7 +742,7 @@ def init_requests_instrumentor():
             return True
     except Exception as e:
         logging.error(f"Error initializing Requests instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -756,7 +757,7 @@ def init_urllib3_instrumentor():
             return True
     except Exception as e:
         logging.error(f"Error initializing urllib3 instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -771,7 +772,7 @@ def init_pymysql_instrumentor():
             return True
     except Exception as e:
         logging.error(f"Error initializing SQLAlchemy instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -781,7 +782,7 @@ def init_bedrock_instrumentor(should_enrich_metrics: bool):
             from opentelemetry.instrumentation.bedrock import BedrockInstrumentor
 
             instrumentor = BedrockInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
                 enrich_token_usage=should_enrich_metrics,
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
@@ -789,7 +790,7 @@ def init_bedrock_instrumentor(should_enrich_metrics: bool):
             return True
     except Exception as e:
         logging.error(f"Error initializing Bedrock instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -799,14 +800,14 @@ def init_sagemaker_instrumentor(should_enrich_metrics: bool):
             from opentelemetry.instrumentation.sagemaker import SageMakerInstrumentor
 
             instrumentor = SageMakerInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing SageMaker instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -817,14 +818,14 @@ def init_replicate_instrumentor():
             from opentelemetry.instrumentation.replicate import ReplicateInstrumentor
 
             instrumentor = ReplicateInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Replicate instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -835,14 +836,14 @@ def init_vertexai_instrumentor():
             from opentelemetry.instrumentation.vertexai import VertexAIInstrumentor
 
             instrumentor = VertexAIInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.warning(f"Error initializing Vertex AI instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -853,14 +854,14 @@ def init_watsonx_instrumentor():
             from opentelemetry.instrumentation.watsonx import WatsonxInstrumentor
 
             instrumentor = WatsonxInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.warning(f"Error initializing Watsonx instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -871,14 +872,14 @@ def init_weaviate_instrumentor():
             from opentelemetry.instrumentation.weaviate import WeaviateInstrumentor
 
             instrumentor = WeaviateInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.warning(f"Error initializing Weaviate instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -889,14 +890,14 @@ def init_alephalpha_instrumentor():
             from opentelemetry.instrumentation.alephalpha import AlephAlphaInstrumentor
 
             instrumentor = AlephAlphaInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Aleph Alpha instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -907,14 +908,14 @@ def init_marqo_instrumentor():
             from opentelemetry.instrumentation.marqo import MarqoInstrumentor
 
             instrumentor = MarqoInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing marqo instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -925,14 +926,14 @@ def init_lancedb_instrumentor():
             from opentelemetry.instrumentation.lancedb import LanceInstrumentor
 
             instrumentor = LanceInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing LanceDB instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -947,7 +948,7 @@ def init_redis_instrumentor():
             return True
     except Exception as e:
         logging.error(f"Error initializing redis instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -958,14 +959,14 @@ def init_groq_instrumentor():
             from opentelemetry.instrumentation.groq import GroqInstrumentor
 
             instrumentor = GroqInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing Groq instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -976,14 +977,14 @@ def init_crewai_instrumentor():
             from opentelemetry.instrumentation.crewai import CrewAIInstrumentor
 
             instrumentor = CrewAIInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing CrewAI instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -994,14 +995,14 @@ def init_mcp_instrumentor():
             from opentelemetry.instrumentation.mcp import McpInstrumentor
 
             instrumentor = McpInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing MCP instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 
@@ -1014,14 +1015,14 @@ def init_openai_agents_instrumentor():
             )
 
             instrumentor = OpenAIAgentsInstrumentor(
-                exception_logger=lambda e: # Telemetry().log_exception(e),
+                exception_logger=lambda e: Telemetry().log_exception(e),
             )
             if not instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.instrument()
             return True
     except Exception as e:
         logging.error(f"Error initializing OpenAI Agents instrumentor: {e}")
-        # Telemetry().log_exception(e)
+        Telemetry().log_exception(e)
     return False
 
 

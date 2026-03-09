@@ -24,8 +24,7 @@ from traceloop.sdk.images.image_uploader import ImageUploader
 from traceloop.sdk.instruments import Instruments
 from traceloop.sdk.logging.logging import LoggerWrapper
 from traceloop.sdk.metrics.metrics import MetricsWrapper
-
-# from traceloop.sdk.telemetry import Telemetry
+from traceloop.sdk.telemetry import Telemetry
 from traceloop.sdk.tracing.tracing import (
     TracerWrapper,
     set_association_properties,
@@ -72,9 +71,9 @@ class Traceloop:
             print(Fore.YELLOW + "Traceloop instrumentation is disabled via init flag" + Fore.RESET)
             return
 
-        telemetry_enabled = False
-        # if telemetry_enabled:
-        #     Telemetry()
+        telemetry_enabled = True
+        if telemetry_enabled:
+            Telemetry()
 
         api_endpoint = os.getenv("TRACELOOP_BASE_URL") or api_endpoint
         api_key = os.getenv("TRACELOOP_API_KEY") or api_key
