@@ -1,7 +1,8 @@
 from typing import Optional
 
 from jinja2 import Environment, meta
-from traceloop.sdk import Telemetry
+
+# from traceloop.sdk import Telemetry
 from traceloop.sdk.prompts.model import Prompt, PromptVersion, TemplateEngine
 from traceloop.sdk.prompts.registry import PromptRegistry
 from traceloop.sdk.tracing.tracing import set_managed_prompt_tracing_context
@@ -55,7 +56,7 @@ class PromptRegistryClient:
         version_hash: Optional[str] = None,
         variables: dict = {},
     ):
-        Telemetry().capture("prompt:rendered")
+        # Telemetry().capture("prompt:rendered")
 
         prompt = self._registry.get_prompt_by_key(key)
         if prompt is None:

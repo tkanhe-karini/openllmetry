@@ -1,30 +1,30 @@
-import json
-from functools import wraps
-import os
-from typing import (
-    Optional,
-    TypeVar,
-    Callable,
-    Any,
-    cast,
-    ParamSpec,
-    Awaitable,
-)
 import inspect
-import warnings
+import json
+import os
 import types
+import warnings
+from functools import wraps
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Optional,
+    ParamSpec,
+    TypeVar,
+    cast,
+)
 
-from opentelemetry import trace
-from opentelemetry.trace.status import Status, StatusCode
 from opentelemetry import context as context_api
+from opentelemetry import trace
 from opentelemetry.semconv_ai import SpanAttributes, TraceloopSpanKindValues
+from opentelemetry.trace.status import Status, StatusCode
 
-from traceloop.sdk.telemetry import Telemetry
+# from traceloop.sdk.telemetry import Telemetry
 from traceloop.sdk.tracing import get_tracer, set_workflow_name
 from traceloop.sdk.tracing.tracing import (
     TracerWrapper,
-    set_entity_path,
     get_chained_entity_path,
+    set_entity_path,
 )
 from traceloop.sdk.utils import camel_to_snake
 from traceloop.sdk.utils.json_encoder import JSONEncoder
@@ -125,9 +125,7 @@ async def _ahandle_generator(span, ctx_token, res):
 
 
 def _should_send_prompts():
-    return (
-        os.getenv("TRACELOOP_TRACE_CONTENT") or "true"
-    ).lower() == "true" or context_api.get_value("override_enable_content_tracing")
+    return (os.getenv("TRACELOOP_TRACE_CONTENT") or "true").lower() == "true" or context_api.get_value("override_enable_content_tracing")
 
 
 # Unified Decorators : handles both sync and async operations
@@ -171,16 +169,15 @@ def _handle_span_input(span, args, kwargs, cls=None):
     """Handles entity input logging in JSON for both sync and async functions"""
     try:
         if _should_send_prompts():
-            json_input = json.dumps(
-                {"args": args, "kwargs": kwargs}, **({"cls": cls} if cls else {})
-            )
+            json_input = json.dumps({"args": args, "kwargs": kwargs}, **({"cls": cls} if cls else {}))
             truncated_json = _truncate_json_if_needed(json_input)
             span.set_attribute(
                 SpanAttributes.TRACELOOP_ENTITY_INPUT,
                 truncated_json,
             )
     except TypeError as e:
-        Telemetry().log_exception(e)
+        # Telemetry().log_exception(e)
+        pass
 
 
 def _handle_span_output(span, res, cls=None):
@@ -194,7 +191,8 @@ def _handle_span_output(span, res, cls=None):
                 truncated_json,
             )
     except TypeError as e:
-        Telemetry().log_exception(e)
+        # Telemetry().log_exception(e)
+        pass
 
 
 def _cleanup_span(span, ctx_token):
@@ -221,13 +219,9 @@ def entity_method(
                             yield item
                         return
 
-                    span, ctx, ctx_token = _setup_span(
-                        entity_name, tlp_span_kind, version
-                    )
+                    span, ctx, ctx_token = _setup_span(entity_name, tlp_span_kind, version)
                     _handle_span_input(span, args, kwargs, cls=JSONEncoder)
-                    async for item in _ahandle_generator(
-                        span, ctx_token, fn(*args, **kwargs)
-                    ):
+                    async for item in _ahandle_generator(span, ctx_token, fn(*args, **kwargs)):
                         yield item
 
                 return cast(F, async_gen_wrap)
@@ -238,9 +232,7 @@ def entity_method(
                     if not TracerWrapper.verify_initialized():
                         return await fn(*args, **kwargs)
 
-                    span, ctx, ctx_token = _setup_span(
-                        entity_name, tlp_span_kind, version
-                    )
+                    span, ctx, ctx_token = _setup_span(entity_name, tlp_span_kind, version)
                     _handle_span_input(span, args, kwargs, cls=JSONEncoder)
                     try:
                         res = await fn(*args, **kwargs)
@@ -296,9 +288,7 @@ def entity_class(
         setattr(
             cls,
             method_name,
-            entity_method(name=task_name, version=version, tlp_span_kind=tlp_span_kind)(
-                method
-            ),
+            entity_method(name=task_name, version=version, tlp_span_kind=tlp_span_kind)(method),
         )
         return cls
 
