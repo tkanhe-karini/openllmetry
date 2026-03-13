@@ -35,7 +35,6 @@ opentelemetry-instrumentation-urllib3 = ">=0.50b0"
 opentelemetry-instrumentation-threading = ">=0.50b0"
 opentelemetry-instrumentation-openai = { path = "../opentelemetry-instrumentation-openai", develop = true }
 opentelemetry-instrumentation-cohere = { path = "../opentelemetry-instrumentation-cohere", develop = true }
-opentelemetry-instrumentation-google-generativeai = { path = "../opentelemetry-instrumentation-google-generativeai", develop = true }
 opentelemetry-instrumentation-langchain = { path = "../opentelemetry-instrumentation-langchain", develop = true }
 opentelemetry-instrumentation-bedrock = { path = "../opentelemetry-instrumentation-bedrock", develop = true }
 opentelemetry-instrumentation-vertexai = { path = "../opentelemetry-instrumentation-vertexai", develop = true }

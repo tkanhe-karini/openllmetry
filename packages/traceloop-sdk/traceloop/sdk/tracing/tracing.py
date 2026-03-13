@@ -409,9 +409,6 @@ def init_instrumentations(
         if instrument == Instruments.BEDROCK:
             if init_bedrock_instrumentor(should_enrich_metrics):
                 instrument_set = True
-        elif instrument == Instruments.GOOGLE_GENERATIVEAI:
-            if init_google_generativeai_instrumentor():
-                instrument_set = True
         elif instrument == Instruments.LANGCHAIN:
             if init_langchain_instrumentor():
                 instrument_set = True
