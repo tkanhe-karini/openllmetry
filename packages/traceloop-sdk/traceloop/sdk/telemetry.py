@@ -1,40 +1,34 @@
+import logging
 import os
+import sys
 import uuid
 from pathlib import Path
-import logging
-import sys
-from posthog import Posthog
-from traceloop.sdk.version import __version__
 
-POSTHOG_API_KEY = "phc_6AT2D3sP5u4fkUZtSqgtmoKmcx8rEX8f86lpISOpAhx"
+from traceloop.sdk.version import __version__
 
 
 class Telemetry:
     ANON_ID_PATH = str(Path.home() / ".cache" / "traceloop" / "telemetry_anon_id")
     UNKNOWN_ANON_ID = "UNKNOWN"
 
-    _posthog: Posthog = None
-
     def __new__(cls) -> "Telemetry":
         if not hasattr(cls, "instance"):
             obj = cls.instance = super(Telemetry, cls).__new__(cls)
-            obj._telemetry_enabled = (
-                os.getenv("TRACELOOP_TELEMETRY") or "true"
-            ).lower() == "true" and "pytest" not in sys.modules
+            obj._telemetry_enabled = False
 
-            if obj._telemetry_enabled:
-                try:
-                    obj._posthog = Posthog(
-                        project_api_key=POSTHOG_API_KEY,
-                        host="https://app.posthog.com",
-                    )
-                    obj._curr_anon_id = None
+            # if obj._telemetry_enabled:
+            #     try:
+            #         obj._posthog = Posthog(
+            #             project_api_key=POSTHOG_API_KEY,
+            #             host="https://app.posthog.com",
+            #         )
+            #         obj._curr_anon_id = None
 
-                    posthog_logger = logging.getLogger("posthog")
-                    posthog_logger.disabled = True
-                except Exception:
-                    # disable telemetry if it fails
-                    obj._telemetry_enabled = False
+            #         posthog_logger = logging.getLogger("posthog")
+            #         posthog_logger.disabled = True
+            #     except Exception:
+            #         # disable telemetry if it fails
+            #         obj._telemetry_enabled = False
 
         return cls.instance
 
@@ -64,31 +58,31 @@ class Telemetry:
         }
 
     def capture(self, event: str, event_properties: dict = {}) -> None:
-        try:  # don't fail if telemetry fails
-            if self._telemetry_enabled:
-                self._posthog.capture(
-                    self._anon_id(), event, {**self._context(), **event_properties}
-                )
-        except Exception:
-            pass
+        # try:  # don't fail if telemetry fails
+        #     if self._telemetry_enabled:
+        #         self._posthog.capture(self._anon_id(), event, {**self._context(), **event_properties})
+        # except Exception:
+        #     pass
+        return None
 
     def log_exception(self, exception: Exception):
-        try:  # don't fail if telemetry fails
-            return self._posthog.capture(
-                self._anon_id(),
-                "exception",
-                {
-                    **self._context(),
-                    "exception": str(exception),
-                },
-            )
-        except Exception:
-            pass
+        # try:  # don't fail if telemetry fails
+        #     return self._posthog.capture(
+        #         self._anon_id(),
+        #         "exception",
+        #         {
+        #             **self._context(),
+        #             "exception": str(exception),
+        #         },
+        #     )
+        # except Exception:
+        #     pass
+        return None
 
     def feature_enabled(self, key: str):
-        try:  # don't fail if telemetry fails
-            if self._telemetry_enabled:
-                return self._posthog.feature_enabled(key, self._anon_id())
-        except Exception:
-            pass
+        # try:  # don't fail if telemetry fails
+        #     if self._telemetry_enabled:
+        #         return self._posthog.feature_enabled(key, self._anon_id())
+        # except Exception:
+        #     pass
         return False
